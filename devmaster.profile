@@ -25,7 +25,6 @@ function devmaster_profile_modules() {
     'views',
     'views_bulk_operations',
     'actions_permissions',
-    'hosting_platform_pathauto',
 
     /* DEVSHOP Contrib */
     'adminrole',
@@ -38,7 +37,6 @@ function devmaster_profile_modules() {
     'devshop_pull',
 
     /* NICEITIES */
-    'hosting_drush_aliases',
     'hosting_filemanager',
     'hosting_logs',
     'hosting_tasks_extra',
