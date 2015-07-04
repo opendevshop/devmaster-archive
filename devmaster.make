@@ -12,6 +12,7 @@ includes[devshop] = "drupal-org.make"
 ; For development, use latest branch.
 ; NOTE: We are using 2.x of hosting until the next release.
 projects[hosting][version] = "2.x"
+projects[hosting][patch][] = "patches/hosting.patch"
 
 ; For release, use tagged version
 ;projects[hosting][version] = "2.4"
@@ -40,8 +41,8 @@ projects[jquery_update][subdir] = contrib
 projects[views][version] = "3.2"
 projects[views][subdir] = contrib
 
-projects[views_bulk_operations][version] = "1.16"
-projects[views_bulk_operations][subdir] = contrib
+;projects[views_bulk_operations][version] = "1.16"
+;projects[views_bulk_operations][subdir] = contrib
 
 projects[ctools][version] = "1.12"
 projects[ctools][subdir] = contrib
