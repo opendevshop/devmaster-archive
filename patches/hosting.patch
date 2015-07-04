@@ -1,0 +1,14 @@
+diff --git a/hosting.info b/hosting.info
+index b955b47..16ac253 100644
+--- a/hosting.info
++++ b/hosting.info
+@@ -4,7 +4,7 @@ package = Hosting
+ dependencies[] = modalframe
+ dependencies[] = jquery_update
+ dependencies[] = views
+-dependencies[] = views_bulk_operations
++#dependencies[] = views_bulk_operations
+ dependencies[] = ctools
+ #dependencies[] = hosting_task
+ #dependencies[] = hosting_client
+

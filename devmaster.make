@@ -12,6 +12,7 @@ includes[devshop] = "drupal-org.make"
 ; For development, use latest branch.
 ; NOTE: We are using 2.x of hosting until the next release.
 projects[hosting][version] = "2.x"
+projects[hosting][patch][] = "patches/hosting.patch"
 
 ; For release, use tagged version
 ;projects[hosting][version] = "2.4"
