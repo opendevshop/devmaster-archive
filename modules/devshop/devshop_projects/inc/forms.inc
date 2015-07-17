@@ -103,14 +103,7 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id){
 
           foreach ($form['parameters'] as $key => &$element) {
             if (is_int($key)) {
-              // Don't unset the target platform. Just hide it.
-              if (isset($element['target_platform']['#default_value'])) {
-                $form['parameters'][$key]['target_platform']['#type'] = 'value';
-                $form['parameters'][$key]['target_platform']['#value'] = $form['parameters'][$key]['target_platform']['#default_value'];
-              }
-              else {
-                unset($form['parameters'][$key]);
-              }
+              unset($form['parameters'][$key]);
             }
           }
           $form['parameters']['#suffix'] = '</div>';
