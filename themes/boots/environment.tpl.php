@@ -85,7 +85,7 @@
         <?php endforeach; ?>
     <?php endif; ?>
 
-    <?php if ($environment->created['type'] == 'clone'): ?>
+    <?php if ($environment->created['type'] == 'clone' && $environment->created['status'] == HOSTING_TASK_ERROR): ?>
         <div class="list-group-item center-block text text-muted">
             <i class="fa fa-warning"></i> <?php print t('Environment clone failed.'); ?>
         </div>
@@ -100,6 +100,10 @@
                     </a>
                 <?php endif; ?>
             </div>
+        </div>
+    <?php elseif ($environment->created['type'] == 'clone' && $environment->created['status'] == HOSTING_TASK_PROCESSING || $environment->created['status'] == HOSTING_TASK_QUEUED): ?>
+        <div class="list-group-item center-block text text-muted">
+            <i class="fa fa-gear fa-spin"></i> <?php print t('Cloning environment...'); ?>
         </div>
     <?php elseif (empty($environment->site)): ?>
         <div class="list-group-item center-block text text-muted">
