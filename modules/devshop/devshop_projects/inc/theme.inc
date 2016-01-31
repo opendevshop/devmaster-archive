@@ -10,28 +10,26 @@ use SensioLabs\AnsiConverter\Theme\SolarizedTheme;
 use SensioLabs\AnsiConverter\Theme\SolarizedXTermTheme;
 
 /**
- * Implements hook_hosting_theme()
+ * Implements hook_theme()
  */
-function devshop_projects_theme(){
+function devshop_projects_theme() {
   return array(
     'devshop_projects_settings_form' => array(
-      'arguments' => array(
+      'variables' => array(
         'form' => NULL,
       ),
     ),
     'devshop_projects_create_settings_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
+      'render element' => 'form',
     ),
     'devshop_project_nav' => array(
-      'arguments' => array(
+      'variables' => array(
         'node' => NULL,
       ),
       'template' => 'project-nav',
     ),
     'devshop_project_add_status' => array(
-      'arguments' => array(
+      'variables' => array(
         'project' => NULL,
       ),
       'template' => 'project-add',
@@ -49,8 +47,8 @@ function theme_devshop_projects_settings_form($form) {
   foreach (element_children($form) as $env_name) {
     $row = array();
     $row[] = $env_name . drupal_render($form[$env_name]['git_ref']);
-    foreach(element_children($form[$env_name]['settings']) as $setting){
-      if (!isset($header[$setting])){
+    foreach (element_children($form[$env_name]['settings']) as $setting) {
+      if (!isset($header[$setting])) {
         $header[$setting] = $form[$env_name]['settings'][$setting]['#title'];
       }
       $form[$env_name]['settings'][$setting]['#title'] = '';
@@ -58,7 +56,7 @@ function theme_devshop_projects_settings_form($form) {
     }
     $rows[] = $row;
   }
-  $output = theme('table', $header, $rows, array('id' => 'project-settings-table'));
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'project-settings-table')));
   return $output;
 }
 
@@ -66,38 +64,54 @@ function theme_devshop_projects_settings_form($form) {
  * Theme function for create environments settings
  * @TODO: Fold into theme_devshop_projects_settings_form()
  */
-function theme_devshop_projects_create_settings_form($form) {
+function theme_devshop_projects_create_settings_form($vars) {
+
+  $form = $vars['form'];
   $rows = array();
   $header = array();
   foreach (element_children($form) as $env_name) {
     $row = array();
     $header['name'] = 'Name';
     $header['git_ref'] = t('Branch/Tag');
-    $row[] = drupal_render($form[$env_name]['name']);
-    $row[] = drupal_render($form[$env_name]['git_ref']);
 
-    foreach(element_children($form[$env_name]['settings']) as $setting){
-      if (!isset($header[$setting])){
+    $name_element = $form[$env_name]['name'];
+    $git_ref_element = $form[$env_name]['git_ref'];
+    $settings_element = $form[$env_name]['settings'];
+
+    $row[] = drupal_render($name_element);
+    $row[] = drupal_render($git_ref_element);
+
+    foreach (element_children($settings_element) as $setting) {
+      if (!isset($header[$setting])) {
         $header[$setting] = $form[$env_name]['settings'][$setting]['#title'];
       }
       $form[$env_name]['settings'][$setting]['#title'] = '';
-      $row[] = drupal_render($form[$env_name]['settings'][$setting]);
+
+      $element = $form[$env_name]['settings'][$setting];
+      $row[] = drupal_render($element);
     }
     $rows[] = $row;
   }
-  $output = theme('table', $header, $rows, array('id' => 'project-settings-table', 'class' => 'table'));
-  $output .= '<p>'. t('Create as many new environments as you would like. For example: "dev", "test", and "live". You can create more later on if needed.') .'</p>';
+  $output = theme('table', array(
+      'header' => $header,
+      'rows' => $rows,
+      'attributes' => array(
+          'id' => 'project-settings-table',
+          'class' => array('table'),
+      )
+  ));
+  $output .= '<p>' . t('Create as many new environments as you would like. For example: "dev", "test", and "live". You can create more later on if needed.') . '</p>';
 
-  return $output; 
+  return $output;
 }
 
 /**
  * Preprocess page
  */
-function devshop_projects_preprocess_node(&$vars){
+function devshop_projects_preprocess_node(&$vars) {
 
   // On project node edit page
-  if (isset($vars['node']) && $vars['node']->type == 'project'){
+  if (isset($vars['node']) && $vars['node']->type == 'project') {
 
     $vars['drush_aliases'] = devshop_project_aliases($vars['node']->project);
     $vars['aliases_url'] = url("node/{$vars['node']->nid}/aliases");
@@ -299,22 +313,9 @@ HTML;
 }
 
 /**
- * Preprocess page
- */
-function devshop_projects_preprocess_page(&$vars){
-  if (arg(0) == 'projects' && arg(1) == 'add') {
-    ctools_include('object-cache');
-    $project = ctools_object_cache_get('project', NULL);
-    $vars['left'] = theme('devshop_project_add_status', $project);
-  }
-}
-
-
-/**
  * Preprocess for project_add_status.tpl.php
  */
 function template_preprocess_devshop_project_add_status(&$vars) {
-
   $vars['web_server_node'] = node_load($vars['project']->settings->default_environment['web_server']);
   $vars['db_server_node'] = node_load($vars['project']->settings->default_environment['db_server']);
 }
@@ -322,11 +323,11 @@ function template_preprocess_devshop_project_add_status(&$vars) {
 /**
  * Preprocess for project_nav.tpl.php
  */
-function template_preprocess_devshop_project_nav(&$vars){
+function template_preprocess_devshop_project_nav(&$vars) {
 
   global $user;
   $node = $vars['node'];
-  $project = $vars['project'] = $vars['node']->project;
+  $project = $vars['project'] = $vars['project']->project;
 
   // @TODO: Detect other web URLs for other git hosts.
   if ($project->git_repo_url) {
@@ -339,7 +340,7 @@ function template_preprocess_devshop_project_nav(&$vars){
   $vars['branches_items'] = array();
   $vars['branches_icon'] = 'code-fork';
 
-  if ($vars['branches_count'] == 0){
+  if ($vars['branches_count'] == 0) {
     // If branches are 0 and last verifying is queued...
     if ($node->verify->task_status == HOSTING_TASK_PROCESSING || $node->verify->task_status == HOSTING_TASK_QUEUED) {
       $vars['branches_show_label'] = TRUE;
@@ -368,21 +369,21 @@ function template_preprocess_devshop_project_nav(&$vars){
     $vars['branches_show_label'] = FALSE;
     $vars['branches_label'] = format_plural($vars['branches_count'], t('1 Branch'), t('!count Branches', array('!count' => $vars['branches_count'])));
 
-    foreach ($project->settings->git['branches'] as $branch){
-      $href = isset($vars['github_url'])? $vars['github_url'] . '/tree/' . $branch: '#';
+    foreach ($project->settings->git['branches'] as $branch) {
+      $href = isset($vars['github_url']) ? $vars['github_url'] . '/tree/' . $branch : '#';
       $vars['branches_items'][] = "<a href='$href'><i class='fa fa-code-fork'></i> $branch </a>";
     }
   }
 
 
-  if ($vars['tags_count']){
+  if ($vars['tags_count']) {
 //      <li class="divider"></li>
 
     $vars['branches_label'] .= ' &amp; ' . format_plural($vars['tags_count'], t('1 Tag'), t('!count Tags', array('!count' => $vars['tags_count'])));
 
 
-    foreach ($project->settings->git['tags'] as $branch){
-      $href = isset($vars['github_url'])? $vars['github_url'] . '/tree/' . $branch: '#';
+    foreach ($project->settings->git['tags'] as $branch) {
+      $href = isset($vars['github_url']) ? $vars['github_url'] . '/tree/' . $branch : '#';
       $vars['branches_items'][] = "<a href='$href'><i class='fa fa-tag'></i> $branch </a>";
       $vars['git_refs'][] = $branch;
     }
@@ -390,7 +391,7 @@ function template_preprocess_devshop_project_nav(&$vars){
 
   $vars['dashboard_link'] = l('<i class="fa fa-cubes"></i> ' . t('Dashboard'), "node/$project->nid", array('html' => TRUE));
 
-  if (node_access('update', $node)){
+  if (node_access('update', $node)) {
     $vars['settings_link'] = l('<i class="fa fa-sliders"></i> ' . t('Settings'), "node/$node->nid/edit", array('html' => TRUE));
   }
 

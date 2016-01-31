@@ -7,7 +7,7 @@
 include 'drush/contexts.inc';
 
 /**
- * Implements hook_hosting_task_update_status()
+ * Implements hook_hosting_task_update_status().
  *
  * Saves task status to environment
  */
@@ -43,7 +43,7 @@ function devshop_projects_hosting_task_update_status($task, $status) {
       }
     }
 
-    devshop_environment_save_last_task($site->environment);
+    // devshop_environment_save_last_task($site->environment);
   }
 }
 
@@ -129,12 +129,12 @@ function drush_devshop_projects_pre_hosting_task()
  *
  * Not a hook! Called from drush_devshop_projects_pre_hosting_task
  */
-function drush_devshop_platform_verify(){
+function drush_devshop_platform_verify() {
 
   drush_log(dt("[DEVSHOP] Hello. Preparing aegir platform codebase..."));
 
   // Verify Platform
-  $task =& drush_get_context('HOSTING_TASK');
+  $task = &drush_get_context('HOSTING_TASK');
 
   $platform = $task->ref;
   $root = $platform->publish_path;
@@ -180,7 +180,7 @@ function drush_devshop_platform_verify(){
 }
 
 /**
- * Implementation of hook_post_hosting_TASK_TYPE_task() for delete tasks.
+ * Implements hook_post_hosting_TASK_TYPE_task() for delete tasks().
  */
 function devshop_projects_post_hosting_delete_task($task, $data) {
 
@@ -188,7 +188,7 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
   if ($task->ref->type == 'project') {
     // Queue site deletion for each environment.
     $project = $task->ref->project;
-    foreach ($project->environments as $environment){
+    foreach ($project->environments as $environment) {
       hosting_add_task($environment->site, 'delete');
     }
 
@@ -198,7 +198,7 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
     $task->ref->no_verify = TRUE;
     node_save($task->ref);
   }
-  
+
   // When a site is deleted (if it is in a project, delete the platform it is on.
   // @TODO: Check for another site on this platform?
   if ($task->ref->type == 'site' && !empty($task->ref->project)) {
@@ -208,7 +208,10 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
 
   // When a platform is deleted (if it is in a project), delete the environment record.
   if ($task->ref->type == 'platform' && !empty($task->ref->project)) {
-    db_query('DELETE FROM {hosting_devshop_project_environment} WHERE project_nid = %d AND platform = %d', $task->ref->project->nid, $task->ref->platform);
+    db_delete('hosting_devshop_project_environment')
+      ->condition('project_nid', $task->ref->project->nid)
+      ->condition('platform', $task->ref->platform)
+      ->execute();
 
     // If drupal root is not repo root, delete folder at code_path.
     $repo_path = str_replace($task->ref->project->drupal_path, '', $task->ref->publish_path);
@@ -216,11 +219,11 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
       _provision_recursive_delete($repo_path);
     }
   }
-  
+
   // When a platform is deleted, if it is the last in the project,
   // and the project has been unpublished, delete the directory.
   if ($task->ref->type == 'platform' && !empty($task->ref->project)) {
-    if ($task->ref->project->status == 0 && count($task->ref->project->environments) == 1){
+    if ($task->ref->project->status == 0 && count($task->ref->project->environments) == 1) {
       // Delete the project folder.
       exec("rm -rf {$project->code_path}");
     }
@@ -229,7 +232,7 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
 
 
 /**
- * Implementation of hook_post_hosting_TASK_TYPE_task() for devshop deploy tasks.
+ * Implements hook_post_hosting_TASK_TYPE_task() for devshop deploy tasks().
  */
 function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 
@@ -239,7 +242,13 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 
   $git_ref = $task->task_args['git_ref'];
 
-  $return = db_query('UPDATE {hosting_devshop_project_environment} SET git_ref = "%s" WHERE project_nid = %d AND name = "%s"', $git_ref, $task->ref->environment->project_nid, $task->ref->environment->name);
+  $return = db_update('hosting_devshop_project_environment')
+    ->fields(array(
+      'git_ref' => $git_ref,
+    ))
+    ->condition('project_nid', $task->ref->environment->project_nid)
+    ->condition('name', $task->ref->environment->name)
+    ->execute();
 
   if ($return) {
     drush_log("[DEVSHOP] Git reference {$git_ref} saved to {$task->ref->environment->name} environment record.");
@@ -253,7 +262,7 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 }
 
 /**
- * Implementation of hook_post_hosting_TASK_TYPE_task()
+ * Implements hook_post_hosting_TASK_TYPE_task().
  *
  * Acts after the successful verification of platforms.
  * This is where the sites get automatically created.
@@ -266,13 +275,13 @@ function devshop_projects_post_hosting_verify_task($task, $data) {
 
     // If this platform isn't in a project, bail.
     $platform = $task->ref;
-    if (empty($platform->project)){
+    if (empty($platform->project)) {
       drush_log('[DEVSHOP] No project found for this platform.', 'notice');
       return;
     }
 
     // If the project doesn't have an install profile chosen yet, bail.
-    if (empty($platform->project->install_profile)){
+    if (empty($platform->project->install_profile)) {
       drush_log('[DEVSHOP] No install profile found for this platform\'s project.', 'notice');
       return;
     }
@@ -291,7 +300,7 @@ function devshop_projects_post_hosting_verify_task($task, $data) {
         $args['target_platform'] = $platform->nid;
 
         // Ensure new URI doesn't contain underscores or other invalid characters.
-        $args['new_uri'] = str_replace('_', '-', $platform->environment->name) .'.'. $platform->project->base_url;
+        $args['new_uri'] = str_replace('_', '-', $platform->environment->name) . '.' . $platform->project->base_url;
 
         // Use the default database server for the project.
         $args['new_db_server'] = $site->db_server;
@@ -322,7 +331,7 @@ function devshop_projects_post_hosting_verify_task($task, $data) {
 }
 
 /**
- * Implementation of hook_post_hosting_TASK_TYPE_task() for `clone` task.
+ * Implements hook_post_hosting_TASK_TYPE_task() for `clone` task().
  *
  * Ensures that cloned sites that are on project platforms inherit the project.
  */
@@ -331,7 +340,7 @@ function devshop_projects_post_hosting_clone_task($task, $data) {
 }
 
 /**
- * Implementation of hook_post_hosting_TASK_TYPE_task()
+ * Implements hook_post_hosting_TASK_TYPE_task().
  *
  * Ensures that cloned sites that are on project platforms inherit the project.
  */
@@ -346,7 +355,13 @@ function devshop_projects_post_hosting_import_task($task, $data) {
 
       // Save environment record.
       drush_log('[DevShop Environment] Saving environment data...', 'devshop_command');
-      $return = db_query('UPDATE {hosting_devshop_project_environment} SET site = %d WHERE project_nid = %d AND name = "%s"', $site->nid, $platform->project->nid, $platform->environment->name);
+      db_update('hosting_devshop_project_environment')
+        ->fields(array(
+          'site' => $site->nid,
+        ))
+        ->condition('project_nid', $platform->project->nid)
+        ->condition('name', $platform->environment->name)
+        ->execute();
       drush_log("Saved {$platform->environment->name} in project {$platform->project->name}.", 'devshop_ok');
 
       // Save aliases if needed.
@@ -376,7 +391,7 @@ function _devshop_projects_git_execute($commands, $root = '') {
     $commands = array($commands);
   }
   foreach ($commands as $command) {
-    if (!empty($command)){
+    if (!empty($command)) {
       drush_log("[DEVSHOP] Running Command in $root: $command");
 
       // @TODO: Create a d()->server->shell_cd_and_exec() function
@@ -398,7 +413,7 @@ function _devshop_projects_git_execute($commands, $root = '') {
       }
 
       $output = drush_shell_exec_output();
-      drush_log('Shell Output: ' . implode("\n", $output) , 'ok');
+      drush_log('Shell Output: ' . implode("\n", $output), 'ok');
       $return .=  implode("\n", $output);
     }
   }
