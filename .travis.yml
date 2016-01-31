@@ -36,8 +36,6 @@ services:
   - docker
 
 before_install:
-  # Get the PR Commit
-  - REVISION=$(git rev-parse HEAD)
   # Clone devshop
   - git clone http://github.com/opendevshop/devshop
   - cd devshop
