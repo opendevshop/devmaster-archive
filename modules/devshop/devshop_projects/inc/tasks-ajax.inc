@@ -7,10 +7,9 @@
  */
 function devshop_projects_tasks_status_json($project_nid = '') {
 
-    $output = array();
-    $args = array();
+  $output = array();
 
-    $sql = '
+  $sql = '
         SELECT
             project_nid,
             name,
@@ -23,15 +22,19 @@ function devshop_projects_tasks_status_json($project_nid = '') {
           WHERE n.status = 1
         ';
 
-    if (!empty($project_nid)) {
-        $sql .= ' WHERE project_nid = %d';
-        $args[] = $project_nid;
-    }
-    $query = db_query($sql, $args);
+  if (!empty($project_nid)) {
+    $sql .= ' WHERE project_nid = :project';
+  }
+  $results = db_query($sql, array(
+    ':project' => $project_nid,
+    ':status' => HOSTING_SITE_DELETED,
+  ));
 
-    // Get all environments and their status.
-    while ($result = db_fetch_object($query)) {
-        $result->last_task = node_load($result->last_task_nid);
+  $task_types = hosting_available_tasks();
+
+  // Get all environments and their status.
+  foreach ($results as $result) {
+    $result->last_task = node_load($result->last_task_nid);
 
         if ($result->site) {
           $result->site_node = node_load($result->site);
@@ -54,11 +57,12 @@ function devshop_projects_tasks_status_json($project_nid = '') {
             }
         }
 
+        // To test out constantly changing tasks, uncomment this line.
+        //$result->last_task->status = rand(-1, 3);
+
         $output[] = $result;
-    }
+  }
 
-  //
-
-    print json_encode($output);
-    exit;
+  print json_encode($output);
+  exit;
 }

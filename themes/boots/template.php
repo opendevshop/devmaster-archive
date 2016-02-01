@@ -21,13 +21,12 @@ function boots_theme() {
 function boots_preprocess_environment(&$vars)
 {
   $environment = &$vars['environment'];
-  $project_node = node_load($environment->project_nid);
-  $project = $vars['project'] = $project_node->project;
+  $project = &$vars['project'];
 
   // Load git refs and create links
   $vars['git_refs'] = array();
-  foreach ($project_node->project->settings->git['refs'] as $ref => $type) {
-    $href = url('node/ENV_NID/site_devshop-deploy', array(
+  foreach ($project->settings->git['refs'] as $ref => $type) {
+    $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
         'query' => array(
             'git_ref' => $ref,
         )
@@ -76,6 +75,13 @@ function boots_preprocess_environment(&$vars)
 
   // Load Task Links
   $environment->task_links = devshop_environment_links($environment);
+  $environment->task_links_rendered = theme("item_list", array(
+    'items' => $environment->task_links,
+    'attributes' => array(
+      'class' => array('dropdown-menu dropdown-menu-right'),
+      )
+    )
+  );
 
   // Task Logs
   $environment->task_count = count($environment->tasks);
@@ -85,7 +91,9 @@ function boots_preprocess_environment(&$vars)
   $items[] = l('<i class="fa fa-list"></i> ' . t('Task Logs'), "node/$project->nid/logs/$environment->name", array(
       'html' => TRUE,
       'attributes' => array(
-          'class' => 'list-group-item',
+          'class' => array(
+            'list-group-item',
+          ),
       ),
   ));
 
@@ -103,7 +111,7 @@ function boots_preprocess_environment(&$vars)
 
     $text = "<i class='fa fa-{$task->icon}'></i> {$task->type_name} <span class='small'>{$task->status_name}</span> <em class='small pull-right'><i class='fa fa-calendar'></i> {$task->ago}</em>";
 
-    $items[] = l($text, "node/{$task->nid}/revisions/{$task->vid}/view", array(
+    $items[] = l($text, "node/{$task->nid}", array(
         'html' => TRUE,
         'attributes' => array(
             'class' => "list-group-item list-group-item-{$task->status_class}",
@@ -197,7 +205,9 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
   $task_items[] = l($text, $url, array(
     'html' => TRUE,
     'attributes' => array(
-      'class' => 'list-group-item',
+      'class' => array(
+        'list-group-item',
+      ),
     ),
   ));
 
@@ -240,11 +250,12 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
       $text .= $task->title;
       $text .= ' <small class="task-ago btn-block">' . format_interval(time() - $task->changed) .' '. t('ago') . '</small>';
 
+      $id = isset($task_node->environment)? "task-{$task_node->environment->project_name}-{$task_node->environment->name}": "task-";
       $task_items[] = l($text, 'node/' . $task->nid, array(
         'html' => TRUE,
         'attributes' => array(
-          'class' => 'list-group-item ' . $item_class,
-            'id' => "task-{$task_node->environment->project_name}-{$task_node->environment->name}",
+          'class' => array('list-group-item ' . $item_class),
+            'id' => $id,
         ),
       ));
     }
@@ -254,14 +265,14 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
   }
 
   $items[] = array(
-    'class' => 'tasks',
+    'class' => array('tasks'),
     'data' => '<div class="list-group">' . implode("\n", $task_items) . '</div>',
   );
 
   if (!empty($actions)) {
 
     array_unshift($items, array(
-      'class' => 'divider',
+      'class' => array('divider'),
     ));
 
     // Add "Environment Settings" link
@@ -273,7 +284,7 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
     foreach ($actions as $link) {
       $action_items[] = l($link['title'], $link['href'], array(
         'attributes' => array(
-          'class' => 'list-group-item',
+          'class' => array('list-group-item'),
         ),
         'query' => array(
           'token' => drupal_get_token($user->uid),
@@ -282,12 +293,21 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
     }
 
     $items[] = array(
-      'class' => 'actions',
+      'class' => array('actions'),
       'data' => '<div class="list-group">' . implode("\n", $action_items) . '</div>',
     );
   }
 
-  $tasks = theme('item_list', $items, '', 'ul', array('class' => 'devshop-tasks dropdown-menu dropdown-menu-' . $float, 'role' => 'menu'));
+  $tasks = theme('item_list', array(
+    'items' => $items,
+    'attributes' => array(
+      'class' => array(
+        'devshop-tasks dropdown-menu dropdown-menu-' . $float,
+        )
+      ),
+      'role' => 'menu',
+    )
+  );
 
   if ($tasks_count == 0) {
     $tasks_count = '';
@@ -312,11 +332,16 @@ HTML;
  */
 function boots_preprocess_page(&$vars){
 
-  if ($primary = menu_primary_local_tasks()) {
-    $vars['tabs'] = "<ul class=\"nav nav-pills nav-stacked\">\n" . $primary . "</ul>\n";
+  // Add information about the number of sidebars.
+  $has_sidebar_first = !empty($vars['page']['sidebar_first']) || !empty($vars['tabs']);
+  if ($has_sidebar_first && !empty($vars['page']['sidebar_second'])) {
+    $vars['content_column_class'] = ' class="col-sm-6"';
   }
-  if ($secondary = menu_secondary_local_tasks()) {
-    $vars['tabs2'] = "<ul class=\"nav nav-tabs\">\n" . $secondary . "</ul>\n";
+  elseif ($has_sidebar_first || !empty($vars['page']['sidebar_second'])) {
+    $vars['content_column_class'] = ' class="col-sm-9"';
+  }
+  else {
+    $vars['content_column_class'] = ' class="col-sm-12"';
   }
 
   if (user_access('access task logs')){
@@ -326,21 +351,20 @@ function boots_preprocess_page(&$vars){
   // On any node/% page...
   if ($vars['node'] || arg(0) == 'node' && is_numeric(arg(1))) {
 
+    // Task nodes only have project nid and environment name.
+    if (is_numeric($vars['node']->project)) {
+      $project_node = node_load($vars['node']->project);
+      $vars['node']->project = $project_node->project;
+      $vars['node']->environment = $project_node->project->environments[$vars['node']->environment];
+    }
+
     // load $vars['node'] if it's not present (like on node/%/edit)
     if (empty($vars['node'])) {
       $vars['node'] = node_load(arg(1));
     }
 
-    // Removing conflicting scripts.
-    // Not sure how this actually works.  Drupal 6 is fun!
-    // Thanks, http://drupal.stackexchange.com/questions/5076/remove-every-javascript-except-own-theme-scripts
-    drupal_add_js(path_to_theme(). '/js/bootstrap.min.js', 'theme');
-    $js = drupal_add_js();
-    unset($js['core']);
-    unset($js['module']);
-    $vars['scripts'] = $js;
-
     // Set subtitle
+    $vars['title'] = $vars['node']->title;
     $vars['subtitle'] = ucfirst($vars['node']->type);
     $vars['title_url'] = "node/" . $vars['node']->nid;
 
@@ -436,7 +460,7 @@ function boots_preprocess_node(&$vars) {
   }
   elseif ($vars['node']->type == 'site') {
     if (!empty($vars['node']->environment)) {
-      $vars['template_files'][] =  'node-site-environment';
+      $vars['theme_hook_suggestions'][] =  'node__site_environment';
     }
   }
 }
@@ -477,7 +501,7 @@ function boots_preprocess_node_project(&$vars){
     if ($node->verify->task_status == HOSTING_TASK_ERROR) {
       $vars['deploy_label'] = t('There was a problem refreshing branches and tags.');
       $vars['git_refs'][] = l(t('View task log'), 'node/' . $node->verify->nid);
-      $vars['git_refs'][] = l(t('Refresh branches'), 'node/' . $node->nid . '/project_verify', array('attributes' => array('class' => 'refresh-link'), 'query' => array('token' => drupal_get_token($user->uid))));
+      $vars['git_refs'][] = l(t('Refresh branches'), 'node/' . $node->nid . '/project_verify', array('attributes' => array('class' => array('refresh-link')), 'query' => array('token' => drupal_get_token($user->uid))));
     }
     elseif ($node->verify->task_status == HOSTING_TASK_QUEUED || $node->verify->task_status == HOSTING_TASK_PROCESSING) {
       $vars['deploy_label'] =  t('Branches refreshing.  Please wait.');
@@ -487,7 +511,7 @@ function boots_preprocess_node_project(&$vars){
     $vars['deploy_label'] = t('Deploy a tag or branch');
 
     foreach ($node->project->settings->git['refs'] as $ref => $type){
-      $href = url('node/ENV_NID/site_devshop-deploy', array(
+      $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
         'query' =>array(
           'git_ref' => $ref,
         )
@@ -559,7 +583,7 @@ function boots_preprocess_node_project(&$vars){
     else {
       $github_button_text = t('Manage Webhooks at GitHub.com');
     }
-    $button = l($github_button_text, $vars['add_webhook_url'], array('attributes'=> array('class' => 'btn btn-primary', 'target' => '_blank')));
+    $button = l($github_button_text, $vars['add_webhook_url'], array('attributes'=> array('class' => array('btn btn-primary'), 'target' => '_blank')));
   }
   else {
     $suffix = t('Ping this URL after each code push to keep the servers up to date.');
@@ -623,7 +647,10 @@ HTML;
   foreach ($vars['node']->project->environments as &$environment) {
 
     // Render each environment.
-    $vars['environments'][] = theme('environment', $environment, $vars['node']->project);
+    $vars['environments'][] = theme('environment', array(
+      'environment' => $environment,
+      'project' => $vars['node']->project,
+    ));
   }
 
   // Warnings & Errors
@@ -641,109 +668,37 @@ HTML;
 }
 
 /**
- * Override for item_list
- */
-function boots_item_list($items = array(), $title = NULL, $type = 'ul', $attributes = NULL) {
-  $output = '';
-  if (!empty($title)) {
-    $output .= '<h3>' . $title . '</h3>';
-  }
-
-  if (!empty($items)) {
-    $output .= "<$type" . drupal_attributes($attributes) . '>';
-    $num_items = count($items);
-    foreach ($items as $i => $item) {
-      $attributes = array();
-      $children = array();
-      if (is_array($item)) {
-        foreach ($item as $key => $value) {
-          if ($key == 'data') {
-            $data = $value;
-          }
-          elseif ($key == 'children') {
-            $children = $value;
-          }
-          else {
-            $attributes[$key] = $value;
-          }
-        }
-      }
-      else {
-        $data = $item;
-      }
-      if (count($children) > 0) {
-        $data .= theme_item_list($children, NULL, $type, $attributes); // Render nested list
-      }
-      if ($i == 0) {
-        $attributes['class'] = empty($attributes['class']) ? 'first' : ($attributes['class'] . ' first');
-      }
-      if ($i == $num_items - 1) {
-        $attributes['class'] = empty($attributes['class']) ? 'last' : ($attributes['class'] . ' last');
-      }
-      $output .= '<li' . drupal_attributes($attributes) . '>' . $data . "</li>\n";
-    }
-    $output .= "</$type>";
-  }
-  return $output;
-}
-
-/**
- * Override for drupal's tabs.
+ * Returns HTML for primary and secondary local tasks.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *     - primary: (optional) An array of local tasks (tabs).
+ *     - secondary: (optional) An array of local tasks (tabs).
+ *
  * @return string
+ *   The constructed HTML.
+ *
+ * @see theme_menu_local_tasks()
+ * @see menu_local_tasks()
+ *
+ * @ingroup theme_functions
  */
-function boots_menu_local_tasks() {
+function boots_menu_local_tasks(&$variables) {
   $output = '';
 
-  if ($primary = menu_primary_local_tasks()) {
-    $output .= "<ul class=\"nav nav-pills nav-stacked\">\n" . $primary . "</ul>\n";
+  if (!empty($variables['primary'])) {
+    $variables['primary']['#prefix'] = '<h2 class="element-invisible">' . t('Primary tabs') . '</h2>';
+    $variables['primary']['#prefix'] .= '<ul class="tabs--primary nav nav-pills nav-stacked">';
+    $variables['primary']['#suffix'] = '</ul>';
+    $output .= drupal_render($variables['primary']);
   }
-  if ($secondary = menu_secondary_local_tasks()) {
-    $output .= "<ul class=\"nav nav-tabs\">\n" . $secondary . "</ul>\n";
+
+  if (!empty($variables['secondary'])) {
+    $variables['secondary']['#prefix'] = '<h2 class="element-invisible">' . t('Secondary tabs') . '</h2>';
+    $variables['secondary']['#prefix'] .= '<ul class="tabs--secondary pagination pagination-sm">';
+    $variables['secondary']['#suffix'] = '</ul>';
+    $output .= drupal_render($variables['secondary']);
   }
 
   return $output;
-}
-
-/**
- * Implements hook_status_messages()
- */
-function boots_status_messages($display = NULL) {
-  $output = '';
-  foreach (drupal_get_messages($display) as $type => $messages) {
-    if ($type == 'status') {
-      $class = "alert alert-success";
-    }
-    elseif ($type == 'warning') {
-      $class = "alert alert-warning";
-    }
-    elseif ($type == 'error') {
-      $class = "alert alert-danger";
-    }
-
-    $output .= "<div class=\"$class\">\n";
-    if (count($messages) > 1) {
-      $output .= " <ul>\n";
-      foreach ($messages as $message) {
-        $output .= '  <li>' . $message . "</li>\n";
-      }
-      $output .= " </ul>\n";
-    }
-    else {
-      $output .= $messages[0];
-    }
-    $output .= "</div>\n";
-  }
-  return $output;
-}
-
-function boots_button($element) {
-  // Make sure not to overwrite classes.
-  if (isset($element ['#attributes']['class'])) {
-    $element ['#attributes']['class'] = 'form-' . $element ['#button_type'] . ' ' . $element ['#attributes']['class'];
-  }
-  else {
-    $element ['#attributes']['class'] = 'btn btn-default form-' . $element ['#button_type'];
-  }
-
-  return '<input type="submit" ' . (empty($element ['#name']) ? '' : 'name="' . $element ['#name'] . '" ') . 'id="' . $element ['#id'] . '" value="' . check_plain($element ['#value']) . '" ' . drupal_attributes($element ['#attributes']) . " />\n";
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implements hook_hosting_feature
+ * Implements hook_hosting_feature().
  * @return array List of features to expose to Aegir's hosting features page.
  */
 function devshop_hosting_hosting_feature() {
@@ -23,7 +23,7 @@ function devshop_hosting_hosting_feature() {
     'title' => t('DevShop Pull'),
     'description' => t('Allows automated Pull Code on commit or via queue.'),
     'status' => HOSTING_FEATURE_DISABLED,
-    'module' => 'devshop_projects',
+    'module' => 'devshop_pull',
     'group' => 'devshop',
   );
   $features['devshop_testing'] = array(

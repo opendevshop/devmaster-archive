@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_hosting_tasks()
+ * Implements hook_hosting_tasks().
  */
 function devshop_projects_hosting_tasks() {
   $tasks = array();
@@ -13,8 +13,6 @@ function devshop_projects_hosting_tasks() {
     'title' => t('Verify Project'),
     'description' => t('Verifies access to the git repository, downloads branch and tag information.'),
     'provision_save' => TRUE,
-    'access callback' => 'devshop_hosting_task_menu_access',
-    'hidden' => TRUE,
   );
   $tasks['project']['devshop-create'] = array(
     'title' => t('Create New Environment'),
@@ -42,11 +40,14 @@ function devshop_projects_hosting_tasks() {
     'dialog' => TRUE,
     'hidden' => TRUE,
   );
-  $tasks['site']['devshop-deploy'] = array(
-    'title' => t('Deploy'),
-    'access callback' => 'devshop_hosting_task_menu_access',
-    'dialog' => TRUE,
-  );
+  // @TODO: This task was making menu cache clears FREAK OUT.
+  // We must figure out how to create a new "deploy" task.
+  // This task might as well be in hosting_git.module
+//  $tasks['site']['devshop-deploy'] = array(
+//    'title' => t('Deploy'),
+//    'access callback' => 'devshop_hosting_task_menu_access',
+//    'dialog' => TRUE,
+//  );
   return $tasks;
 }
 
@@ -60,7 +61,7 @@ function devshop_projects_tasks_add_environment_to_form(&$form, $node, $descript
     '#type' => $type,
     '#title' => t($title),
     '#options' => $options,
-    '#default_value' => $type == 'radios'? key($options): array(key($options)),
+    '#default_value' => $type == 'radios' ? key($options) : array(key($options)),
     '#required' => $type == 'checkboxes',
     '#description' => $description,
   );
