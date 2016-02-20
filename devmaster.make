@@ -47,6 +47,7 @@ projects[ctools][subdir] = contrib
 projects[features][version] = "1.2"
 projects[features][subdir] = contrib
 
+
 projects[hosting_filemanager][version] = "1.0-beta1"
 projects[hosting_filemanager][subdir] = contrib
 
