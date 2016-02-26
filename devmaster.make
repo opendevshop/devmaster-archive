@@ -4,6 +4,9 @@ api = 2
 projects[drupal][type] = "core"
 projects[drupal][version] = "6.37"
 
+# Update this with each new release of devshop
+projects[devshop_stats][version] = "0.8-rc2"
+
 ; this makefile will make sure we get the development code from the
 ; aegir modules instead of the tagged releases
 includes[devshop] = "drupal-org.make"
