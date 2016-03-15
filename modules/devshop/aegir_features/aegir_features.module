@@ -6,9 +6,9 @@
 function aegir_features_hosting_tasks() {
     $tasks['site']['features_update'] = array(
         'title' => t('Recreate Features'),
-        'access callback' => 'devshop_hosting_task_menu_access',
+        'description' => t('Run "features-update" or "features-update-all" on your site.'),
         'dialog' => TRUE,
-        'icon' => 'refresh'
+        'icon' => 'refresh',
     );
     return $tasks;
 }
@@ -17,8 +17,13 @@ function aegir_features_hosting_tasks() {
  * Implements hook_perm()
  * @return array
  */
-function aegir_features_perm() {
-    return array('create features_update task');
+function aegir_features_permission() {
+    return array(
+        'create features_update task' => array(
+            'title' => t('create features_update task'),
+            'description' => t('Create "features_update" task.'),
+        ),
+    );
 }
 
 /**
@@ -31,8 +36,7 @@ function hosting_task_features_update_form($node) {
     }
 
     $form['note'] = array(
-      '#value' => t('This task will run <code>drush features-update</code> or <code>drush features-update-all</code>.'),
-      '#type' => 'markup',
+      '#markup' => t('This task will run <code>drush features-update</code> or <code>drush features-update-all</code>.'),
       '#prefix' => '<div class="alert alert-info">',
       '#suffix' => '</div>',
     );

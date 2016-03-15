@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implements hook_hosting_feature
+ * Implements hook_hosting_feature().
  * @return array List of features to expose to Aegir's hosting features page.
  */
 function devshop_hosting_hosting_feature() {
@@ -17,13 +17,6 @@ function devshop_hosting_hosting_feature() {
     'description' => t('Allows running of tests on sites.'),
     'status' => HOSTING_FEATURE_DISABLED,
     'module' => 'devshop_testing',
-    'group' => 'devshop',
-  );
-  $features['devshop_log'] = array(
-    'title' => t('DevShop Logs'),
-    'description' => t('Provides error and commit logs to DevShop.'),
-    'status' => HOSTING_FEATURE_DISABLED,
-    'module' => 'devshop_log',
     'group' => 'devshop',
   );
   $features['devshop_dothooks'] = array(

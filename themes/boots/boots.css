@@ -15,10 +15,10 @@ body.admin-menu .navbar-static-top {
 .btn-env-buttons {
   min-width: 92px;
 }
-#navbar-main .task-list-button {
-  padding: 1em;
+#navbar .task-list.btn-group {
+  padding: .5em;
 }
-#navbar-main .active-task {
+#navbar .active-task {
   color: #ffffaa;
 }
 
@@ -461,8 +461,8 @@ input.form-control.webhook-url {
   color: #777;
 }
 
-#navbar-main .task-list.btn-group.open button,
-#navbar-main .task-list.btn-group.open button .active-task {
+#navbar .task-list.btn-group.open button,
+#navbar .task-list.btn-group.open button .active-task {
   color: #777;
 }
 
@@ -808,7 +808,9 @@ div.hosting-task-retry form, div.hosting-task-retry form input {
 .running-indicator.active {
     display: block;
 }
-
+.task-badge {
+    margin-right: 5px;
+}
 .task-arg {
   padding-right: 2em;
   white-space: nowrap;
@@ -817,6 +819,10 @@ div.hosting-task-retry form, div.hosting-task-retry form input {
 .task-arguments-list {
   display: inline-block;
 
+}
+
+.ansi_color_bg_black {
+    background: #262626;
 }
 
 .btn-last-task {
@@ -849,4 +855,15 @@ div.hosting-task-retry form, div.hosting-task-retry form input {
     display: block;
     font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
     font-size: 13px;
+}
+
+#project-settings-table .form-control,
+#hosting-task-confirm-form .form-control#edit-parameters-environment-name {
+    width: auto;
+    display:inline;
+
+}
+
+#devshop-project-create-step-git #edit-cancel {
+    float: right;
 }
