@@ -4,6 +4,8 @@
  * Connects DevShop front-end to provision backend.
  */
 
+include 'drush/contexts.inc';
+
 /**
  * Implements hook_hosting_task_update_status()
  *
