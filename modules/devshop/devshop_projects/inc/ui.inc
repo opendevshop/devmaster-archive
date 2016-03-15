@@ -293,7 +293,7 @@ HTML;
         $tasks[$action]['title'] = '<i class="fa fa-trash-o"></i> ' . t('Destroy Environment');
       }
 
-      $href = "hosting_confirm/{$environment->site}/site_{$action}";
+      $href = "task/{$environment->site}/site_{$action}";
       $url = url($href, array(
           'query' => array(
               'token' => drupal_get_token($user->uid),
@@ -328,19 +328,19 @@ function devshop_projects_nodeapi_site_view(&$node, $a3, $a4) {
     $node->content['info']['project'] = array(
       '#type' => 'item',
       '#title' => t('Project'),
-      '#markup' => l($node->project->name, "node/{$node->project->nid}"),
+      '#value' => l($node->project->name, "node/{$node->project->nid}"),
       '#weight' => -12,
     );
     $node->content['info']['env'] = array(
       '#type' => 'item',
       '#title' => t('Environment'),
-      '#markup' => $node->environment->name,
+      '#value' => $node->environment->name,
       '#weight' => -11,
     );
     $node->content['info']['branch'] = array(
       '#type' => 'item',
       '#title' => t('Branch/Tag'),
-      '#markup' => $node->environment->git_ref,
+      '#value' => $node->environment->git_ref,
       '#weight' => -11,
     );
 
