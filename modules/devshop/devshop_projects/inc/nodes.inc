@@ -122,7 +122,7 @@ function devshop_projects_load($node) {
     $environment->settings = (object) unserialize($environment->settings);
 
     // Get last task
-    $environment->last_task = node_load($environment->last_task_nid);
+    $environment->last_task_node = node_load($environment->last_task_nid);
 
     // Get all tasks, keyed by type.
     $environment->tasks = devshop_get_tasks($environment);

@@ -7,14 +7,13 @@
  */
 function devshop_projects_tasks_status_json($project_nid = '') {
 
-    $output = array();
-    $args = array();
+  $output = array();
 
-    $sql = '
+  $sql = '
         SELECT
             project_nid,
             name,
-            last_task AS last_task_nid,
+            last_task,
             n.title as project,
             site,
             e.platform
@@ -23,15 +22,19 @@ function devshop_projects_tasks_status_json($project_nid = '') {
           WHERE n.status = 1
         ';
 
-    if (!empty($project_nid)) {
-        $sql .= ' WHERE project_nid = %d';
-        $args[] = $project_nid;
-    }
-    $query = db_query($sql, $args);
+  if (!empty($project_nid)) {
+    $sql .= ' WHERE project_nid = :project';
+  }
+  $results = db_query($sql, array(
+    ':project' => $project_nid,
+    ':status' => HOSTING_SITE_DELETED,
+  ));
 
-    // Get all environments and their status.
-    while ($result = db_fetch_object($query)) {
-        $result->last_task = node_load($result->last_task_nid);
+  $task_types = hosting_available_tasks();
+
+  // Get all environments and their status.
+  foreach ($results as $result) {
+    $result->last_task_node = node_load($result->last_task);
 
         if ($result->site) {
           $result->site_node = node_load($result->site);
@@ -42,23 +45,24 @@ function devshop_projects_tasks_status_json($project_nid = '') {
         }
 
         // If no last task node was found, skip.
-        if (empty($result->last_task)) {
+        if (empty($result->last_task_node)) {
             continue;
         }
 
         // If page is requesting this task's logs, load them.
-        if ($_GET['task'] == $result->last_task->nid) {
-            $messages = devshop_task_get_messages($result->last_task);
+        if (isset($_GET['task']) && $_GET['task'] == $result->last_task_node->nid) {
+            $messages = devshop_task_get_messages($result->last_task_node);
             if (count($messages)) {
-                $result->last_task->logs = implode("\n", $messages);
+                $result->last_task_node->logs = implode("\n", $messages);
             }
         }
 
+        // To test out constantly changing tasks, uncomment this line.
+        //$result->last_task->status = rand(-1, 3);
+
         $output[] = $result;
-    }
+  }
 
-  //
-
-    print json_encode($output);
-    exit;
+  print json_encode($output);
+  exit;
 }

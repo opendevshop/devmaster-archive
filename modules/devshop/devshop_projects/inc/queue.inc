@@ -29,13 +29,13 @@ function devshop_projects_get_deploy_queue_environments() {
 
   $results = db_query("SELECT nid FROM {hosting_devshop_project}");
   $environments = array();
-  while ($result = db_fetch_object($results)) {
+  foreach ($results as $result) {
     $node = node_load($result->nid);
     if (!isset($node->project)) {
       continue;
     }
     $project = $node->project;
-    if (isset($project->settings->DEPLOY) && $project->settings->deploy['method'] == 'queue'){
+    if (isset($project->settings->deploy) && $project->settings->deploy['method'] == 'queue'){
       foreach ($project->environments as $environment) {
         if ($environment->git_ref_type == 'branch' && $environment->settings->pull_disabled == 0) {
           $environments[] = $environment;

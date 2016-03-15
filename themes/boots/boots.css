@@ -819,6 +819,10 @@ div.hosting-task-retry form, div.hosting-task-retry form input {
 
 }
 
+.ansi_color_bg_black {
+    background: #262626;
+}
+
 .btn-last-task {
     padding: 5px 10px;
     text-overflow: ellipsis;
@@ -849,4 +853,15 @@ div.hosting-task-retry form, div.hosting-task-retry form input {
     display: block;
     font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
     font-size: 13px;
+}
+
+#project-settings-table .form-control,
+#hosting-task-confirm-form .form-control#edit-parameters-environment-name {
+    width: auto;
+    display:inline;
+
+}
+
+#devshop-project-create-step-git #edit-cancel {
+    float: right;
 }

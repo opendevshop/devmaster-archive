@@ -9,7 +9,7 @@ use GitWrapper\GitException;
 function aegir_commit_hosting_tasks() {
     $tasks['site']['commit'] = array(
         'title' => t('Commit Code'),
-        'access callback' => 'devshop_hosting_task_menu_access',
+        'description' => t('Commit all or some of the changed files to the git repository.'),
         'dialog' => TRUE,
         'icon' => 'save'
     );
@@ -77,6 +77,9 @@ function hosting_task_commit_form($node) {
     '#prefix' => '<div class="alert alert-info">',
       '#suffix' => t('It is recommended to read the git diff before you commit.') . '</div>',
   );
+  $environment->git_status = trim(shell_exec("cd $environment->repo_root; git -c color.ui=always  status"));
+  $environment->git_diff = trim(shell_exec("cd $environment->repo_root; git -c color.ui=always diff"));
+
   $form['git_info']['status'] = array(
     '#type' => 'markup',
     '#value' => theme('devshop_ascii', $environment->git_status),
@@ -124,6 +127,19 @@ function aegir_commit_validate_files($element, &$form_state) {
     $values = json_encode(array_filter(array_values($element['#value'])));
     form_set_value($element, $values, $form_state);
   }
+}
+
+/**
+ * Implements hook_devshop_environment_actions().
+ *
+ * Defines the list of tasks that appear under the gear icon.
+ */
+function aegir_commit_devshop_environment_actions($environment) {
+
+  if ($environment->site && $environment->site_status == HOSTING_SITE_ENABLED) {
+    $items[] = 'commit';
+  }
+  return $items;
 }
 
 /**
