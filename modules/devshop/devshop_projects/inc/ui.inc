@@ -145,7 +145,7 @@ HTML;
     if (empty($data['header'])) {
       $data['header'] = $header;
     }
-    $output = theme('table', array('header' => $data['header'], 'rows' => $data['rows'], 'attributes' => array('class' => array('table'))));
+    $output = theme('table', $data['header'], $data['rows'], array('class' => 'table'));
   }
   return $output;
 }
@@ -251,7 +251,7 @@ function devshop_environment_links($environment) {
 
   // Load test task, if it exists
   if ($tasks['test']) {
-    $href = "hosting_confirm/{$environment->site}/site_test";
+    $href = "node/{$environment->site}/site_test";
     $url = url($href, array(
       'query' => array(
         'token' => drupal_get_token($user->uid),
