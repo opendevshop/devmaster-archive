@@ -10,35 +10,34 @@ use SensioLabs\AnsiConverter\Theme\SolarizedTheme;
 use SensioLabs\AnsiConverter\Theme\SolarizedXTermTheme;
 
 /**
- * Implements hook_theme()
+ * Implements hook_hosting_theme()
  */
-function devshop_projects_theme() {
+function devshop_projects_theme(){
   return array(
     'devshop_projects_settings_form' => array(
-      'variables' => array(
+      'arguments' => array(
         'form' => NULL,
       ),
     ),
     'devshop_projects_create_settings_form' => array(
-      'render element' => 'form',
+      'arguments' => array(
+        'form' => NULL,
+      ),
     ),
     'devshop_project_nav' => array(
-      'variables' => array(
+      'arguments' => array(
         'node' => NULL,
-        'settings_active' => NULL,
-        'logs_active' => NULL,
-        'branches_class' => NULL,
       ),
       'template' => 'project-nav',
     ),
     'devshop_project_add_status' => array(
-      'variables' => array(
+      'arguments' => array(
         'project' => NULL,
       ),
       'template' => 'project-add',
     ),
     'devshop_ascii' => array(
-      'variables' => array(
+      'arguments' => array(
         'output' => '',
       ),
     ),
@@ -55,8 +54,8 @@ function theme_devshop_projects_settings_form($form) {
   foreach (element_children($form) as $env_name) {
     $row = array();
     $row[] = $env_name . drupal_render($form[$env_name]['git_ref']);
-    foreach (element_children($form[$env_name]['settings']) as $setting) {
-      if (!isset($header[$setting])) {
+    foreach(element_children($form[$env_name]['settings']) as $setting){
+      if (!isset($header[$setting])){
         $header[$setting] = $form[$env_name]['settings'][$setting]['#title'];
       }
       $form[$env_name]['settings'][$setting]['#title'] = '';
@@ -64,7 +63,7 @@ function theme_devshop_projects_settings_form($form) {
     }
     $rows[] = $row;
   }
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'project-settings-table')));
+  $output = theme('table', $header, $rows, array('id' => 'project-settings-table'));
   return $output;
 }
 
@@ -72,56 +71,38 @@ function theme_devshop_projects_settings_form($form) {
  * Theme function for create environments settings
  * @TODO: Fold into theme_devshop_projects_settings_form()
  */
-function theme_devshop_projects_create_settings_form($vars) {
-
-  $form = $vars['form'];
+function theme_devshop_projects_create_settings_form($form) {
   $rows = array();
   $header = array();
   foreach (element_children($form) as $env_name) {
     $row = array();
     $header['name'] = 'Name';
     $header['git_ref'] = t('Branch/Tag');
+    $row[] = drupal_render($form[$env_name]['name']);
+    $row[] = drupal_render($form[$env_name]['git_ref']);
 
-    $name_element = $form[$env_name]['name'];
-    $git_ref_element = $form[$env_name]['git_ref'];
-    $settings_element = $form[$env_name]['settings'];
-
-    $row[] = drupal_render($name_element);
-    $row[] = drupal_render($git_ref_element);
-
-    foreach (element_children($settings_element) as $setting) {
-      if (!isset($header[$setting])) {
-        $header[$setting] = isset($form[$env_name]['settings'][$setting]['#title']) ? $form[$env_name]['settings'][$setting]['#title'] : '';
+    foreach(element_children($form[$env_name]['settings']) as $setting){
+      if (!isset($header[$setting])){
+        $header[$setting] = $form[$env_name]['settings'][$setting]['#title'];
       }
       $form[$env_name]['settings'][$setting]['#title'] = '';
-
-      $element = $form[$env_name]['settings'][$setting];
-      $row[] = drupal_render($element);
+      $row[] = drupal_render($form[$env_name]['settings'][$setting]);
     }
     $rows[] = $row;
   }
-  $output = theme('table', array(
-      'header' => $header,
-      'rows' => $rows,
-      'attributes' => array(
-          'id' => 'project-settings-table',
-          'class' => array('table'),
-      )
-  ));
-  $output .= '<p>' . t('Create as many new environments as you would like. For example: "dev", "test", and "live". You can create more later on if needed.') . '</p>';
+  $output = theme('table', $header, $rows, array('id' => 'project-settings-table', 'class' => 'table'));
+  $output .= '<p>'. t('Create as many new environments as you would like. For example: "dev", "test", and "live". You can create more later on if needed.') .'</p>';
 
-  return $output;
+  return $output; 
 }
 
 /**
  * Preprocess page
  */
-function devshop_projects_preprocess_node(&$vars) {
-
-  $node = $vars['node'];
+function devshop_projects_preprocess_node(&$vars){
 
   // On project node edit page
-  if (isset($vars['node']) && $vars['node']->type == 'project') {
+  if (isset($vars['node']) && $vars['node']->type == 'project'){
 
     $vars['drush_aliases'] = devshop_project_aliases($vars['node']->project);
     $vars['aliases_url'] = url("node/{$vars['node']->nid}/aliases");
@@ -138,7 +119,9 @@ function devshop_projects_preprocess_node(&$vars) {
   }
 
   // On task node page
-  if (isset($vars['node']) && $vars['node']->type == 'task' && ($vars['page'] || current_path() == "hosting/task/{$node->nid}")){
+  if (isset($vars['node']) && $vars['node']->type == 'task' && !empty($vars['node']->project) && $vars['page']){
+    $vars['content'] = '';
+
     // Prepare task icon, class, and label.
     $icon = devshop_task_status_icon($vars['node']->task_status);
     $vars['task_label'] = "<i class='fa fa-$icon'></i> " . _hosting_parse_error_code($vars['node']->task_status);
@@ -158,38 +141,39 @@ function devshop_projects_preprocess_node(&$vars) {
 
     // Show duration
     if ($vars['node']->task_status == HOSTING_TASK_QUEUED) {
-      $vars['duration'] = t('Queued for %time', array('%time' => format_interval(REQUEST_TIME - $vars['node']->changed)));
+      $vars['duration'] = t('Queued for %time', array('%time' => format_interval(time() - $vars['node']->changed)));
       $vars['date'] = date('D M j Y', $vars['node']->changed);
       $vars['executed'] = '';
     }
     else {
 
       if ($vars['node']->task_status == HOSTING_TASK_PROCESSING) {
-        $vars['duration'] = format_interval(REQUEST_TIME - $vars['node']->executed, 1);
+        $vars['duration'] = format_interval(time() - $vars['node']->executed, 1);
         $vars['executed'] = '';
       }
       else {
         $vars['duration'] = format_interval($vars['node']->delta, 1);
-        $vars['executed'] = format_interval(REQUEST_TIME - $vars['node']->executed) . ' ' . t('ago');
+        $vars['executed'] = format_interval(time() - $vars['node']->executed) . ' ' . t('ago');
       }
       $vars['date'] = date('D M j Y', $vars['node']->executed);
     }
 
     // Load Logs
-    $messages = devshop_task_get_messages($vars['node']);
-    $vars['messages'] = implode("\n", $messages);
-    switch ($vars['task_type']) {
-      case 'devshop-deploy':
-        $vars['type'] = 'Deploy';
-        break;
-      case 'verify':
-      case 'test':
-      case 'sync':
-      case 'install':
-      default:
-        $vars['type'] = ucfirst($vars['task_type']);
-        break;
-    }
+    $ref = node_load($vars['rid']);
+      $messages = devshop_task_get_messages($vars['node']);
+        $vars['messages'] = implode("\n", $messages);
+        switch ($vars['task_type']) {
+          case 'devshop-deploy':
+            $vars['type'] = 'Deploy';
+            break;
+          case 'verify':
+          case 'test':
+          case 'sync':
+          case 'install':
+          default:
+            $vars['type'] = ucfirst($vars['task_type']);
+            break;
+        }
 
     // Add "Follow Logs" button.
     if ($vars['node']->task_status == HOSTING_TASK_PROCESSING || $vars['node']->task_status == HOSTING_TASK_QUEUED ) {
@@ -225,26 +209,14 @@ function devshop_task_get_messages($task_node) {
   $messages = array();
   $outputs = array();
 
-  $result = db_query("
-    SELECT message, type, timestamp FROM {hosting_task_log}
-      WHERE nid = :nid
-        AND vid = :vid
-        AND (type LIKE :devshop OR type = :error OR type = :warning)
-      ORDER BY lid", array(
-    ':nid' => $task_node->nid,
-    ':vid' => $task_node->vid,
-    ':devshop' => 'devshop_%',
-    ':error' => 'error',
-    ':warning' => 'warning',
-  ));
+  $query = db_query("SELECT message, type FROM {hosting_task_log} WHERE vid = %d AND (type LIKE 'devshop_%' OR type = 'error' OR type = 'warning') ORDER BY vid, lid", $task_node->vid);
+  while ($results = db_fetch_object($query)) {
 
-  foreach ($result as $record) {
-
-    if ($record->type == 'devshop_command') {
-      if (empty($record->message)) {
+    if ($results->type == 'devshop_command') {
+      if (empty($results->message)) {
         continue;
       }
-      $command = $record->message;
+      $command = $results->message;
       $outputs[$command] = array(
         'status' => 'default',
         'icon' => 'gear',
@@ -255,38 +227,38 @@ function devshop_task_get_messages($task_node) {
         $outputs[$command]['icon'] .= ' fa-spin';
       }
       continue;
-    } elseif ($record->type == 'devshop_info') {
-      $outputs[$command]['output'] .= $record->message;
+    } elseif ($results->type == 'devshop_info') {
+      $outputs[$command]['output'] .= $results->message;
       $outputs[$command]['status'] = 'default';
       $outputs[$command]['icon'] = 'gear fa-spin';
-    } elseif ($record->type == 'devshop_ok') {
-      $outputs[$command]['output'] .= $record->message;
+    } elseif ($results->type == 'devshop_ok') {
+      $outputs[$command]['output'] .= $results->message;
       $outputs[$command]['status'] = 'success';
       $outputs[$command]['icon'] = 'check';
-    } elseif ($record->type == 'devshop_error') {
+    } elseif ($results->type == 'devshop_error') {
       $outputs[$command]['status'] = 'danger';
       $outputs[$command]['icon'] = 'exclamation-circle';
-      $outputs[$command]['output'] = isset($outputs[$command]['output']) ? $outputs[$command]['output'] .= $record->message : $record->message;
-    } elseif ($record->type == 'warning') {
+      $outputs[$command]['output'] .= $results->message;
+    } elseif ($results->type == 'warning') {
       $command = 'warning_' . count($outputs);
       $outputs[$command]['status'] = 'warning';
       $outputs[$command]['icon'] = 'exclamation-triangle';
-      $outputs[$command]['output'] = isset($outputs[$command]['output']) ? $outputs[$command]['output'] .= $record->message : $record->message;
+      $outputs[$command]['output'] .= $results->message;
       $outputs[$command]['command'] = 'warning';
-    } elseif ($record->type == 'error') {
+    } elseif ($results->type == 'error') {
       $command = 'error_' . count($outputs);
       $outputs[$command]['status'] = 'danger';
       $outputs[$command]['icon'] = 'exclamation-circle';
-      $outputs[$command]['output'] .= $record->message;
+      $outputs[$command]['output'] .= $results->message;
 
       // @TODO: Here, we can check for obscure aegir errors and write our own.
       // devshop_check_errors($outputs[$command]['output']);
       $outputs[$command]['command'] = 'error';
-    } elseif ($record->type == 'devshop_log') {
+    } elseif ($results->type == 'devshop_log') {
       $command = 'notice_' . count($outputs);
       $outputs[$command]['status'] = '';
       $outputs[$command]['icon'] = '';
-      $outputs[$command]['command'] .= $record->message;
+      $outputs[$command]['command'] .= $results->message;
       $outputs[$command]['output'] = '';
     }
   }
@@ -309,7 +281,7 @@ function devshop_task_get_messages($task_node) {
     }
 
     // Convert ASCII to HTML
-    $output = theme('devshop_ascii', array('output' => $data['output']));
+    $output = theme('devshop_ascii', $data['output']);
 
     if (!empty($output)) {
       $body = "<div class='panel-body panel-ansii'>$output</div>";
@@ -328,23 +300,34 @@ HTML;
 }
 
 /**
+ * Preprocess page
+ */
+function devshop_projects_preprocess_page(&$vars){
+  if (arg(0) == 'projects' && arg(1) == 'add') {
+    ctools_include('object-cache');
+    $project = ctools_object_cache_get('project', NULL);
+    $vars['left'] = theme('devshop_project_add_status', $project);
+  }
+}
+
+
+/**
  * Preprocess for project_add_status.tpl.php
  */
 function template_preprocess_devshop_project_add_status(&$vars) {
-  if (isset($vars['project']->settings, $vars['project']->settings->default_environment)) {
-    $vars['web_server_node'] = isset($vars['project']->settings->default_environment['web_server']) ? node_load($vars['project']->settings->default_environment['web_server']) : NULL;
-    $vars['db_server_node'] = isset($vars['project']->settings->default_environment['db_server']) ? node_load($vars['project']->settings->default_environment['db_server']) : NULL;
-  }
+
+  $vars['web_server_node'] = node_load($vars['project']->settings->default_environment['web_server']);
+  $vars['db_server_node'] = node_load($vars['project']->settings->default_environment['db_server']);
 }
 
 /**
  * Preprocess for project_nav.tpl.php
  */
-function template_preprocess_devshop_project_nav(&$vars) {
+function template_preprocess_devshop_project_nav(&$vars){
 
   global $user;
-  $project = $vars['project'];
-  $node = $vars['node'] = node_load($project->nid);
+  $node = $vars['node'];
+  $project = $vars['project'] = $vars['node']->project;
 
   // @TODO: Detect other web URLs for other git hosts.
   if ($project->git_repo_url) {
@@ -357,26 +340,26 @@ function template_preprocess_devshop_project_nav(&$vars) {
   $vars['branches_items'] = array();
   $vars['branches_icon'] = 'code-fork';
 
-  if ($vars['branches_count'] == 0) {
+  if ($vars['branches_count'] == 0){
     // If branches are 0 and last verifying is queued...
-    if ($node->project->verify->task_status == HOSTING_TASK_PROCESSING || $node->verify->task_status == HOSTING_TASK_QUEUED) {
+    if ($node->verify->task_status == HOSTING_TASK_PROCESSING || $node->verify->task_status == HOSTING_TASK_QUEUED) {
       $vars['branches_show_label'] = TRUE;
       $vars['branches_label'] = t('Refreshing...');
       $vars['branches_class'] = 'btn-warning';
       $vars['branches_icon'] = 'gear fa-spin';
-      $vars['branches_items'][] = l(t('View task log'), 'node/' . $node->project->verify->nid);
+      $vars['branches_items'][] = l(t('View task log'), 'node/' . $node->verify->nid);
 
     }
     // If branches are 0 and last verifying failed...
-    elseif ($node->project->verify->task_status == HOSTING_TASK_ERROR) {
+    elseif ($node->verify->task_status == HOSTING_TASK_ERROR) {
       $vars['branches_show_label'] = TRUE;
       $vars['branches_label'] = t('Error');
       $vars['branches_class'] = 'btn-danger';
       $vars['branches_items'][] = t('There was a problem refreshing branches and tags.');
-      $vars['branches_items'][] = l(t('View task log'), 'node/' . $node->project->verify->nid);
+      $vars['branches_items'][] = l(t('View task log'), 'node/' . $node->verify->nid);
     }
     // If branches are 0 and last verifying has completed... This should never happen, because the task would error out.
-    elseif ($node->project->verify->task_status == HOSTING_TASK_SUCCESS) {
+    elseif ($node->verify->task_status == HOSTING_TASK_SUCCESS) {
       $vars['branches_show_label'] = TRUE;
       $vars['branches_label'] = t('No branches found!');
     }
@@ -386,27 +369,31 @@ function template_preprocess_devshop_project_nav(&$vars) {
     $vars['branches_show_label'] = FALSE;
     $vars['branches_label'] = format_plural($vars['branches_count'], t('1 Branch'), t('!count Branches', array('!count' => $vars['branches_count'])));
 
-    foreach ($project->settings->git['branches'] as $branch) {
-      $href = isset($vars['github_url']) ? $vars['github_url'] . '/tree/' . $branch : '#';
+    foreach ($project->settings->git['branches'] as $branch){
+      $href = isset($vars['github_url'])? $vars['github_url'] . '/tree/' . $branch: '#';
       $vars['branches_items'][] = "<a href='$href'><i class='fa fa-code-fork'></i> $branch </a>";
     }
   }
 
 
-  if ($vars['tags_count']) {
+  if ($vars['tags_count']){
 //      <li class="divider"></li>
 
     $vars['branches_label'] .= ' &amp; ' . format_plural($vars['tags_count'], t('1 Tag'), t('!count Tags', array('!count' => $vars['tags_count'])));
 
 
-    foreach ($project->settings->git['tags'] as $branch) {
-      $href = isset($vars['github_url']) ? $vars['github_url'] . '/tree/' . $branch : '#';
+    foreach ($project->settings->git['tags'] as $branch){
+      $href = isset($vars['github_url'])? $vars['github_url'] . '/tree/' . $branch: '#';
       $vars['branches_items'][] = "<a href='$href'><i class='fa fa-tag'></i> $branch </a>";
       $vars['git_refs'][] = $branch;
     }
   }
 
   $vars['dashboard_link'] = l('<i class="fa fa-cubes"></i> ' . t('Dashboard'), "node/$project->nid", array('html' => TRUE));
+
+  if (node_access('update', $node)){
+    $vars['settings_link'] = l('<i class="fa fa-sliders"></i> ' . t('Settings'), "node/$node->nid/edit", array('html' => TRUE));
+  }
 
   if (arg(2) == 'edit') {
     $vars['settings_active'] = 'active';
@@ -417,7 +404,7 @@ function template_preprocess_devshop_project_nav(&$vars) {
 
   // Add "refresh branches" link if project is manual deploy mode or is missing a webhook
   if ($project->settings->deploy['method'] == 'manual' || empty($project->settings->deploy['last_webhook'])) {
-    $vars['branches_items'][] = l(t('Refresh branches'), 'node/' . $node->nid . '/project_verify', array('attributes' => array('class' => array('refresh-link')), 'query' => array('token' => drupal_get_token($user->uid))));
+    $vars['branches_items'][] = l(t('Refresh branches'), 'node/' . $node->nid . '/project_verify', array('attributes' => array('class' => 'refresh-link'), 'query' => array('token' => drupal_get_token($user->uid))));
   }
 
   // Scrub git urls
@@ -430,8 +417,8 @@ function template_preprocess_devshop_project_nav(&$vars) {
  * Usage:
  *   theme('devshop_ascii', $string);
  */
-function theme_devshop_ascii($vars) {
-  $string = $vars['output'];
+function theme_devshop_ascii($string) {
+
   if (empty($string)) {
     return $string;
   }
@@ -441,7 +428,7 @@ function theme_devshop_ascii($vars) {
   $styles = $theme->asCss();
   $styles .= ".ansi_box { overflow: auto; padding: 10px 15px; font-family: monospace; }";
 
-  drupal_add_html_head("<style>$styles</style>");
+  drupal_set_html_head("<style>$styles</style>");
   $converter = new AnsiToHtmlConverter($theme);
   $output = $converter->convert($string);
 
