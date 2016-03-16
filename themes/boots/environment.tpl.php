@@ -792,7 +792,7 @@ sites/all/drush/drushrc.php
        <?php else: ?>
         <!-- Tasks -->
           <label class="sr-only"><?php print t('Last Task') ?></label>
-        <div class="environment-tasks-alert alert-<?php print $environment->last_task_node->status_class ?>">
+        <div class="environment-tasks-alert alert-<?php print $environment->last_task->status_class ?>">
             <div class="btn-group btn-logs pull-right" role="group">
                 <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
                     <i class="fa fa-list-alt"></i>
