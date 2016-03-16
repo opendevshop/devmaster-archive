@@ -1,6 +1,6 @@
 <div class="list-group environment <?php print $environment->class  ?>" id="<?php print $environment->project_name; ?>-<?php print $environment->name ?>">
 
-    <?php if (!empty($environment->task_links) && !$page): ?>
+    <?php if (!empty($environment->task_links) && !isset($page)): ?>
     <!-- Environment Settings & Task Links -->
     <div class="environment-dropdowns">
         <div class="environment-tasks btn-group ">
@@ -63,7 +63,7 @@
 
         <!-- Environment Status Indicators -->
         <div class="environment-indicators">
-            <?php if ($environment->settings->locked): ?>
+            <?php if (isset($environment->settings->locked) && $environment->settings->locked): ?>
                 <span class="environment-meta-data text-muted" title="<?php print t('This database is locked.'); ?>">
               <i class="fa fa-lock"></i><?php print t('Locked') ?>
             </span>
@@ -148,33 +148,6 @@
       <?php endif; ?>
 
     <?php
-      // SITUATION: Environment Disable Initiated
-      elseif (!empty($environment->tasks['disable']) && (current($environment->tasks['disable'])->task_status == HOSTING_TASK_QUEUED || current($environment->tasks['disable'])->task_status == HOSTING_TASK_PROCESSING)): ?>
-        <div class="list-group-item center-block text text-muted">
-          <i class="fa fa-power-off"></i>
-          <?php print t('Environment is being disabled.'); ?>
-        </div>
-        <?php
-
-      // SITUATION: Site is Disabled
-      elseif ($environment->site_status == HOSTING_SITE_DISABLED): ?>
-          <div class="list-group-item center-block text text-muted">
-            <i class="fa fa-power-off"></i>
-            <?php print t('Environment is disabled.'); ?>
-          </div>
-
-          <div class="list-group-item center-block text text-muted">
-            <div class="btn-group">
-              <a href="<?php print url("node/{$environment->site}/site_enable", array('query' => array('token' => $token))); ?>" class="btn btn-lg">
-                <i class="fa fa-power-off"></i> <?php print t('Enable'); ?>
-              </a>
-              <a href="<?php print url("node/{$environment->site}/site_delete", array('query' => array('token' => $token))); ?>" class="btn btn-lg">
-                <i class="fa fa-trash"></i> <?php print t('Destroy'); ?>
-              </a>
-            </div>
-        </div>
-
-    <?php
 
       // SITUATION: Clone Failure
       elseif ($environment->created['type'] == 'clone' && !empty($environment->tasks['delete']) ||
@@ -190,7 +163,7 @@
         </div>
         <div class="list-group-item">
             <div class="btn-group" role="group">
-                <a href="<?php print url("node/{$environment->created['nid']}/revisions/{$environment->created['vid']}/view"); ?>" class="btn btn-default">
+                <a href="<?php print url("node/{$environment->created['nid']}"); ?>" class="btn btn-default">
                     <i class="fa fa-list"></i> <?php print t('View Logs'); ?>
                 </a>
                 <?php if (empty($environment->site) && $environment->platform): ?>
@@ -279,6 +252,42 @@
                 <?php endif; ?>
 
             </div>
+        </div>
+
+    <?php
+      // SITUATION: Site Install Queued or processing.
+      elseif ($environment->created['type'] == 'install' && $environment->created['status'] == HOSTING_TASK_QUEUED || $environment->created['status'] == HOSTING_TASK_PROCESSING): ?>
+
+        <div class="list-group-item center-block text text-muted">
+          <i class="fa fa-truck"></i>
+          <?php print t('Environment install in progress.'); ?>
+        </div>
+
+        <?php
+      // SITUATION: Environment Disable Initiated
+      elseif (!empty($environment->tasks['disable']) && (current($environment->tasks['disable'])->task_status == HOSTING_TASK_QUEUED || current($environment->tasks['disable'])->task_status == HOSTING_TASK_PROCESSING)): ?>
+        <div class="list-group-item center-block text text-muted">
+          <i class="fa fa-power-off"></i>
+          <?php print t('Environment is being disabled.'); ?>
+        </div>
+        <?php
+
+      // SITUATION: Site is Disabled
+      elseif ($environment->site_status == HOSTING_SITE_DISABLED): ?>
+        <div class="list-group-item center-block text text-muted">
+          <i class="fa fa-power-off"></i>
+          <?php print t('Environment is disabled.'); ?>
+        </div>
+
+        <div class="list-group-item center-block text text-muted">
+          <div class="btn-group">
+            <a href="<?php print url("node/{$environment->site}/site_enable", array('query' => array('token' => $token))); ?>" class="btn btn-lg">
+              <i class="fa fa-power-off"></i> <?php print t('Enable'); ?>
+            </a>
+            <a href="<?php print url("node/{$environment->site}/site_delete", array('query' => array('token' => $token))); ?>" class="btn btn-lg">
+              <i class="fa fa-trash"></i> <?php print t('Destroy'); ?>
+            </a>
+          </div>
         </div>
 
     <?php
@@ -445,7 +454,7 @@
                                 <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" role="menu">
-                                <?php if ($environment->settings->locked): ?>
+                                <?php if (isset($environment->settings->locked) && $environment->settings->locked): ?>
                                     <li><label><?php print t('This environment is locked. You cannot deploy data here.'); ?></label></li>
                                 <?php elseif (count($target_environments) == 1): ?>
                                     <li><label><?php print t('No other environments available.'); ?></label></li>
@@ -456,7 +465,7 @@
                                         <li><a href="/node/<?php print $environment->site ?>/site_sync/?source=<?php print $source->site ?>&dest=<?php print $source->name ?>">
                                                 <?php if ($project->settings->live['live_environment'] == $source->name): ?>
                                                     <i class="fa fa-bolt deploy-db-indicator"></i>
-                                                <?php elseif ($source->settings->locked): ?>
+                                                <?php elseif (isset($source->settings->locked) && $source->settings->locked): ?>
                                                     <i class="fa fa-lock deploy-db-indicator"></i>
                                                 <?php endif; ?>
 
@@ -542,7 +551,7 @@
             </div>
         <?php endif; ?>
 
-    <?php if (count(array_filter($environment->settings->deploy)) > 0): ?>
+    <?php if (isset($environment->settings->deploy) && count(array_filter($environment->settings->deploy)) > 0): ?>
     <div class="list-group-item environment-dothooks">
         <label title="<?php print t('These hooks will run on every automatic deploy.');?>"><?php print t('Hooks'); ?></label>
         <div class="btn-group btn-hooks" role="group">
@@ -608,10 +617,19 @@
                                 <li><label><?php print t('File-based Hooks'); ?></label></li>
                                 <li class="text"><p class="text-info">
                                         <i class="fa fa-question-circle"></i>
-                                        <?php print t("When code is deployed, the 'deploy' section of a .hooks or .hooks.yml file in your project. This is your %filename file.", array('%filename' => $environment->dothooks_file_name)); ?></p></li>
+                                        <?php print t("When code is deployed, the scripts in the 'deploy' section of a .hooks or .hooks.yml file in your project is run."); ?></p></li>
+
+                              <?php if (!empty($environment->dothooks_file_name)): ?>
+                              <li class="text"><p class=\"text-info\">
+                                        <i class=\"fa fa-question-circle\"></i>
+                                        <?php print t("This is your &filename:", array(
+                                          '&filename' => $environment->dothooks_file_name
+                                        )); ?></p></li>
                                 <li>
-                                    <pre><?php print file_get_contents($environment->dothooks_file_path); ?></pre>
+                                    <pre><?php if (isset($environment->dothooks_file_path)) { print file_get_contents($environment->dothooks_file_path); } ?></pre>
                                 </li>
+
+                                <?php endif; ?>
                             <?php elseif ($hook_type == 'acquia_hooks'): ?>
                                 <li><label><?php print t('Acquia Cloud Hooks'); ?></label></li>
                                 <li class="text"><p class="text-info">
@@ -674,6 +692,7 @@
 # Aegir files
 sites/sites.php
 sites/*/drushrc.php
+sites/*/local.settings.php
 sites/all/drush/drushrc.php
 </pre>';
 
@@ -743,7 +762,7 @@ sites/all/drush/drushrc.php
                         <?php print t('View Commit on GitHub'); ?>
                       </a>
                     <?php endif; ?>
-                    <?php if (!empty($environment->git_status)): ?>
+                    <?php if (!empty($environment->git_status) && module_exists('aegir_commit') && user_access('create commit task')): ?>
                     <a href="<?php print url("node/{$environment->site}/site_commit", array('query' => array('token' => $token))); ?>" class="btn btn-primary">
                       <i class="fa fa-code"></i> <?php print t('Commit & Push'); ?>
                     </a>
@@ -773,7 +792,7 @@ sites/all/drush/drushrc.php
        <?php else: ?>
         <!-- Tasks -->
           <label class="sr-only"><?php print t('Last Task') ?></label>
-        <div class="environment-tasks-alert alert-<?php print $environment->last_task->status_class ?>">
+        <div class="environment-tasks-alert alert-<?php print $environment->last_task_node->status_class ?>">
             <div class="btn-group btn-logs pull-right" role="group">
                 <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
                     <i class="fa fa-list-alt"></i>
@@ -783,12 +802,12 @@ sites/all/drush/drushrc.php
                 </div>
             </div>
             <div class="btn-group btn-last-task text">
-                <a href="<?php print $environment->last_task->url; ?>" class="alert-link">
-                    <i class="fa fa-<?php print $environment->last_task->icon ?>"></i>
-                    <span class="type-name"><?php print $environment->last_task->type_name ?></span>
-                    <span class="status-name small"><?php if ($environment->last_task->task_status != HOSTING_TASK_QUEUED && $environment->last_task->task_status != HOSTING_TASK_PROCESSING) print $environment->last_task->status_name ?></span>
-                      &nbsp;
-                    <em class="small"><i class="ago-icon fa fa-<?php if ($environment->last_task->task_status == HOSTING_TASK_QUEUED || $environment->last_task->task_status == HOSTING_TASK_PROCESSING) print 'clock-o'; else print 'calendar' ?>"></i> <span class="ago"><?php print $environment->last_task->ago ?></span></em>
+                <a href="<?php print $environment->last_task_node->url; ?>" class="alert-link">
+                    <i class="fa fa-<?php print $environment->last_task_node->icon ?>"></i>
+                    <span class="type-name"><?php print $environment->last_task_node->type_name ?></span>
+                    <span class="status-name small"><?php if ($environment->last_task_node->task_status != HOSTING_TASK_QUEUED && $environment->last_task_node->task_status != HOSTING_TASK_PROCESSING) print $environment->last_task_node->status_name ?></span>
+                   &nbsp;
+                    <em class="small"><i class="ago-icon fa fa-<?php if ($environment->last_task_node->task_status == HOSTING_TASK_QUEUED || $environment->last_task_node->task_status == HOSTING_TASK_PROCESSING) print 'clock-o'; else print 'calendar' ?>"></i> <span class="ago"><?php print $environment->last_task_node->ago ?></span></em>
                 </a>
             </div>
         </div>

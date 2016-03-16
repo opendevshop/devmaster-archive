@@ -46,7 +46,6 @@ HTML;
 function devshop_hosting_init(){
   drupal_add_css(drupal_get_path('module', 'devshop_hosting') . '/devshop.css');
   $path = drupal_get_path('module', 'devshop_hosting') . '/icon.png';
-  drupal_set_html_head("<style>div#header div.logo a { background: url('/$path') !important; }</style>");
 
   drupal_set_html_head('<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">');
 
@@ -59,7 +58,7 @@ function devshop_hosting_init(){
  * Defines a new menu callback: login page for new users, redirect to projects
  * for authenticated users.
  */
-function devshop_hosting_menu(){
+function devshop_hosting_menu() {
   $items['devshop'] = array(
     'title' => 'Welcome to DevShop',
     'description' => '',
@@ -90,10 +89,11 @@ function devshop_hosting_menu(){
  *
  * Provides a login page or redirects to proejcts
  */
-function devshop_hosting_home(){
-  if (user_is_logged_in()){
+function devshop_hosting_home() {
+  if (user_is_logged_in()) {
     drupal_goto(variable_get('devshop_frontpage', 'projects'));
-  } else {
+  }
+  else {
     $output = '<p>' . t('Please log in.') . '</p>';
     return drupal_get_form('user_login');
   }
@@ -132,7 +132,7 @@ function devshop_hosting_menu_alter(&$items){
 function devshop_hosting_site_goto($node) {
   $cid = "hosting:site:" . $node->nid . ":login_link";
   $cache = cache_get($cid);
-  if (user_access('create login-reset task') && !is_null($cache) && (time() < $cache->data['expire'])) {
+  if (user_access('create login-reset task') && !is_null($cache) && (REQUEST_TIME < $cache->data['expire'])) {
     $theurl = $cache->data['link'];
     cache_clear_all($cid, 'cache');
   }
@@ -154,7 +154,7 @@ function devshop_hosting_site_url($node) {
   $schema = 'http';
   $port = null;
 
-  if (isset($node->project_nid)){
+  if (isset($node->project_nid)) {
     $project = node_load($node->project_nid);
     $url = "{$node->environment}.{$project->base_url}";
   }
@@ -200,11 +200,11 @@ function devshop_hosting_site_url($node) {
  * Implements hook_form_alter() for user_login.
  * Provides some UI enhancements.
  */
-function devshop_hosting_form_user_login_alter(&$form){
+function devshop_hosting_form_user_login_alter(&$form) {
   $form['pass']['#description'] .= '  ' . l(t('Forgot your Password?'), 'user/password');
 
   // Add user register link
-  if (user_register_access()){
+  if (user_register_access()) {
     $form['submit']['#suffix'] = t('or') . ' ' . l(t('Create an Account'), 'user/register');
   }
 }
@@ -213,8 +213,8 @@ function devshop_hosting_form_user_login_alter(&$form){
  * Implements hook_form_alter() for user_login_block.
  * Hides the login block form on "devshop" page.
  */
-function devshop_hosting_form_user_login_block_alter(&$form){
-  if (arg(0) == 'devshop'){
+function devshop_hosting_form_user_login_block_alter(&$form) {
+  if (arg(0) == 'devshop') {
     $form = array();
   }
 }
@@ -364,7 +364,7 @@ function devshop_hosting_login_reset($site_nid) {
 
   // Create new reset-login task, if needed
   $cache = cache_get("hosting:site:" . $site_nid . ":login_link");
-  if (!($cache && (time() < $cache->data['expire']))) {
+  if (!($cache && (REQUEST_TIME < $cache->data['expire']))) {
     $task = hosting_add_task($site_nid, 'login-reset');
     drupal_get_messages();
   }
@@ -376,7 +376,7 @@ function devshop_hosting_login_reset($site_nid) {
   while ($task->task_status == HOSTING_TASK_QUEUED || $task->task_status == HOSTING_TASK_PROCESSING) {
     sleep(1);
     $cache = cache_get("hosting:site:" . $site_nid . ":login_link");
-    if ($cache && (time() < $cache->data['expire'])) {
+    if ($cache && (REQUEST_TIME < $cache->data['expire'])) {
       break;
     }
   }

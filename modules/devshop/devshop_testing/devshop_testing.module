@@ -2,7 +2,7 @@
 
 /**
  * @file devshop_projects.module
- * a module in the DevShop module group which enables the user to create 
+ * a module in the DevShop module group which enables the user to create
  * proects and group sites/platforms into project groups.
  */
 
@@ -75,6 +75,7 @@ function devshop_testing_hosting_tasks() {
     'dialog' => TRUE,
     'task_permitted' => TRUE,
     'access callback' => 'devshop_hosting_task_menu_access',
+    'icon' => 'pencil-square-o',
   );
 
   return $tasks;
@@ -85,13 +86,14 @@ function devshop_testing_hosting_tasks() {
  *
  * Defines the list of tasks that appear under the gear icon.
  */
-function devshop_testing_devshop_environment_actions($environment) {
-  if ($environment->site && $environment->site_status == HOSTING_SITE_ENABLED) {
-    return array(
-      'test'
-    );
-  }
-}
+// I'm getting rid of this for now for testing. I want this button at the top.
+//function devshop_testing_devshop_environment_actions($environment) {
+//  if ($environment->site && $environment->site_status == HOSTING_SITE_ENABLED) {
+//    return array(
+//      'test'
+//    );
+//  }
+//}
 
 /**
  * Implementation of hook_hosting_task_TASK_TYPE_form().
@@ -138,7 +140,7 @@ function devshop_testing_form_alter(&$form, &$form_state, $form_id) {
       '#weight' => 100,
     );
     $form['environment']['settings']['testing'] = devshop_testing_form_elements($form['#node']->project,  $form['#node']->environment->name);
-    
+
     // Add to deploy hooks.
     $form['environment']['settings']['deploy']['test'] = array(
       '#type' => 'checkbox',
@@ -168,29 +170,29 @@ function devshop_testing_form_alter(&$form, &$form_state, $form_id) {
  * Helper that returns the common form elements for running tests.
  */
 function devshop_testing_form_elements($project, $environment_name = NULL) {
-  
-  
+
+
   // Load environment object and settings, if we need it.
   if ($environment_name) {
-    $environment = $project->environments[$environment_name];
+    $environment = (object) $project->environments[$environment_name];
     $settings = $environment->settings;
   }
   else {
     // If these settings are not for a specific environment, load up live or the first one.
     if ($project->settings->live['live_environment']) {
-      $environment = $project->environments[$project->settings->live['live_environment']];
+      $environment = (object) $project->environments[$project->settings->live['live_environment']];
     }
     else {
       $environment = array_shift($project->environments);
     }
     $settings = $project->settings;
   }
-  
+
   // If this is an environment form, and we are missing testing settings, inherit the project settings.
   if (isset($environment) && !isset($settings->testing)) {
     $settings->testing = $project->settings->testing;
-  } 
-  // If a project and we are missing testing settings, load defaults.  
+  }
+  // If a project and we are missing testing settings, load defaults.
   // @TODO: Move this to the node API?
   elseif (!isset($settings->testing)) {
     $settings->testing = array(
@@ -200,7 +202,7 @@ function devshop_testing_form_elements($project, $environment_name = NULL) {
       'behat_bin' => 'bin/behat',
     );
   }
-  
+
   // build this group of fields.
   $testing_form = array();
   $testing_form['test_type'] = array(
@@ -213,7 +215,7 @@ function devshop_testing_form_elements($project, $environment_name = NULL) {
     '#type' => 'radios',
     '#default_value' => $settings->testing['test_type'],
   );
-  
+
   // Look for behat feature files.
   // @TODO: Extract this to a hook to make tests types extensible.
   $tests = array();
@@ -279,14 +281,14 @@ function devshop_testing_task_submit(&$form, &$form_state) {
 
 /**
  * Implements hook_hosting_slack_message_alter()
- */ 
+ */
 function devshop_testing_hosting_slack_message_alter(&$message_options) {
   
   
   if ($message_options->task->task_type == 'test') {
 
     $url = url('node/' . $message_options->task->nid . '/revisions/' . $message_options->task->vid, array('absolute' => TRUE) . '/view');
-    
+
     $attachment = new stdClass();
     $attachment->fallback = t('Results: ') . $url;
     $attachment->title = t('Results: ');

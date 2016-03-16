@@ -76,7 +76,7 @@ function boots_preprocess_environment(&$vars)
   }
 
   // Pull Request?
-  if ($environment->github_pull_request) {
+  if (isset($environment->github_pull_request) && $environment->github_pull_request) {
     $environment->class .= ' pull-request';
   }
 
@@ -135,12 +135,18 @@ function boots_preprocess_environment(&$vars)
   }
 
   // No hooks configured.
-  if ($project->settings->deploy['allow_environment_deploy_config'] && $environment->site_status == HOSTING_SITE_ENABLED && count(array_filter($environment->settings->deploy)) == 0) {
+  if (isset($project->settings->deploy) && $project->settings->deploy['allow_environment_deploy_config'] && $environment->site_status == HOSTING_SITE_ENABLED && isset($environment->settings->deploy) && count(array_filter($environment->settings->deploy)) == 0) {
     $vars['warnings'][] = array(
       'text' => t('No deploy hooks are configured. Check your !link.', array(
         '!link' => l(t('Environment Settings'), "node/{$project->nid}/edit/{$environment->nid}"),
       )),
       'type' => 'warning',
+    );
+  }
+  foreach ($environment->warnings as $warning) {
+    $vars['warnings'][] = array(
+      'text' => $warning['text'],
+      'type' => $warning['type'],
     );
   }
 
@@ -212,6 +218,7 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
     }
   }
 
+  $task_class = '';
   if ($tasks_count > 0) {
     $task_class = 'active-task fa-spin';
   }
@@ -276,13 +283,14 @@ function boots_render_tasks($tasks = NULL, $class = '', $actions = array(), $flo
 
       $text = '<i class="fa fa-' . $icon . '"></i> ';
       $text .= $task->title;
-      $text .= ' <small class="task-ago btn-block">' . format_interval(time() - $task->changed) .' '. t('ago') . '</small>';
+      $text .= ' <small class="task-ago btn-block">' . format_interval(REQUEST_TIME - $task->changed) .' '. t('ago') . '</small>';
 
+      $id = isset($task_node->environment)? "task-{$task_node->environment->project_name}-{$task_node->environment->name}": "task-";
       $task_items[] = l($text, 'node/' . $task->nid, array(
         'html' => TRUE,
         'attributes' => array(
           'class' => 'list-group-item ' . $item_class,
-            'id' => "task-{$task_node->environment->project_name}-{$task_node->environment->name}",
+            'id' => $id,
         ),
       ));
     }
@@ -448,14 +456,7 @@ function boots_preprocess_page(&$vars){
 
   }
   if (variable_get('devshop_support_widget_enable', TRUE)) {
-    $vars['closure'] .= <<<HTML
-<script>
-  window.intercomSettings = {
-    app_id: "ufeta82d"
-  };
-</script>
-<script>(function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',intercomSettings);}else{var d=document;var i=function(){i.c(arguments)};i.q=[];i.c=function(args){i.q.push(args)};w.Intercom=i;function l(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/ufeta82d';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})()</script>
-HTML;
+    drupal_add_js(drupal_get_path('theme', 'boots') . '/js/intercomSettings.js', array('type' => 'file'));
   }
 }
 
@@ -565,7 +566,7 @@ function boots_preprocess_node_project(&$vars){
 
   // Set webhook interval
   if ($project->settings->deploy['method'] == 'webhook' && $project->settings->deploy['last_webhook']){
-    $interval = format_interval(time() - $project->settings->deploy['last_webhook']);
+    $interval = format_interval(REQUEST_TIME - $project->settings->deploy['last_webhook']);
     $vars['webhook_ago'] = t('@time ago', array('@time' => $interval));
   }
 
@@ -655,7 +656,7 @@ HTML;
   $vars['hosting_queue_admin_link'] = l(t('Configure Queues'), 'admin/hosting/queues');
 
   // Available deploy data targets.
-  $vars['target_environments'];
+  $vars['target_environments'] = $project->environments;
 
   // Prepare environments output
   foreach ($vars['node']->project->environments as &$environment) {

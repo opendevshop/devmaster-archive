@@ -258,7 +258,7 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
   // Doing this post deploy ensures it was actually checked out.
   drush_log('[DEVSHOP] Environment Deployed.  Saving new git ref to project settings.');
 
-  $git_ref = $task->task_args['git_ref'];
+  $git_ref = trim(str_replace('refs/heads/', '', shell_exec("cd {$task->ref->environment->repo_root}; git describe --tags --exact-match || git symbolic-ref -q HEAD")));;
 
   $return = db_query('UPDATE {hosting_devshop_project_environment} SET git_ref = "%s" WHERE project_nid = %d AND name = "%s"', $git_ref, $task->ref->environment->project_nid, $task->ref->environment->name);
 
