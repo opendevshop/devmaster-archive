@@ -58,9 +58,11 @@ projects[views_bulk_operations][version] = "3.3"
 projects[ctools][version] = "1.9"
 projects[features][version] = "2.7"
 projects[distro_update][version] = "1"
-projects[devshop_stats][version] = "1"
 projects[module_filter][version] = "2"
 projects[intercomio][version] = "1"
+
+; Be sure to update version on release.
+projects[devshop_stats][version] = "1.x"
 
 ; Bootstrap base theme
 projects[bootstrap][type] = theme
