@@ -63,6 +63,7 @@ script:
 
   # Hostmaster Status
   - 'sudo docker exec devshop_container env TERM=xterm sudo su - aegir -c "drush @hostmaster status"'
+  - 'sudo docker exec devshop_container env TERM=xterm php -v'
 
   # Turn off hosting queued, and the hosting task queue.
   - 'sudo docker exec devshop_container env sudo su - aegir -c "drush @hostmaster dis hosting_queued -y -v"'
