@@ -82,31 +82,11 @@ function getBranchesAndTags($git_url = NULL) {
     $git_url = drush_get_option('git_url');
   }
   $command = "git ls-remote {$git_url}";
-  drush_log('[DEVSHOP] running ' . $command, 'ok');
-
-  drush_shell_exec($command);
-  $exec_output = drush_shell_exec_output();
-  if ($exec_output) {
-    drush_log("[DEVSHOP] git ls-remote {$git_url} " . implode('\n', $exec_output), 'ok');
-  }
-  else {
-    $exec_output = drush_shell_exec_output();
-    drush_set_error(DRUSH_FRAMEWORK_ERROR, dt('[DEVSHOP] No output from git ls-remote.') . implode(" ", $exec_output), 'error');
-    return;
-  }
-
-
-  // Check for Permission Denied
-  // @TODO: Provide link to the Public key for the server.
-  if ('Permission denied' == substr($exec_output[0], 0, 17)) {
-    drush_set_error(DRUSH_FRAMEWORK_ERROR, dt('[DEVSHOP] Error:') . implode("\n", $exec_output), 'error');
-    return;
-  }
+  $exec_output = devshop_drush_process("git ls-remote {$git_url}");
 
   // If remote list is empty, something else went wrong.
-  if (count($exec_output) == 1 && empty($exec_output[0])) {
-    drush_set_error(DRUSH_FRAMEWORK_ERROR, dt('[DEVSHOP] Error:') . implode("\n", $exec_output), 'error');
-    return;
+  if (!$exec_output) {
+    return FALSE;
   }
 
   // Build tag and branch list
@@ -114,7 +94,9 @@ function getBranchesAndTags($git_url = NULL) {
   $tags = array();
   $refs = array();
 
-  foreach ($exec_output as $line_string) {
+  // Parse git ls-remote to extract tags and branches
+  $lines = explode("\n", $exec_output);
+  foreach ($lines as $line_string) {
 
     // @TODO: Would love some regex love here
     // Example remote line:
@@ -133,6 +115,9 @@ function getBranchesAndTags($git_url = NULL) {
     }
 
   }
-  drush_log(dt('[DEVSHOP] Found !b branches and !t tags.', array('!b' => count($branches), '!t' => count($tags),)), 'ok');
+  drush_log(dt('Found !b branches and !t tags.', array(
+      '!b' => count($branches),
+      '!t' => count($tags),
+  )), 'devshop_log');
   return array('branches' => $branches, 'tags' => $tags, 'refs' => $refs);
 }
