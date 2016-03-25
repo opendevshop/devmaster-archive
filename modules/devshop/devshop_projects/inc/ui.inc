@@ -166,6 +166,10 @@ function devshop_projects_node_view($node, $view_mode, $langcode) {
     drupal_goto('projects/add/' . $project_wizard_cache->step);
   }
 
+  if ($node->type != 'project') {
+    return;
+  }
+
   // Display basic project information.
   $node->content['project'] = array(
     '#type' => 'item',
