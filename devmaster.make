@@ -80,9 +80,6 @@ projects[aegir_ssh][subdir] = contrib
 projects[sshkey][version] = "2"
 projects[sshkey][subdir] = contrib
 
-projects[devshop_stats][version] = "0.x"
-projects[devshop_stats][subdir] = contrib
-
 ; Libraries
 libraries[jquery_ui][download][type] = "get"
 libraries[jquery_ui][destination] = "modules/contrib/jquery_ui"
