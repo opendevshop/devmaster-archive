@@ -103,6 +103,9 @@ function hosting_task_devshop_create_form($node) {
     '#size' => 10,
     '#maxlength' => 64,
     '#weight' => -100,
+    '#attributes' => array(
+      'data-placement' => 'top',
+    ),
   );
 
   if ($project->settings->live['environment_aliases'] && !empty($node->project->settings->live['live_domain'])) {
@@ -138,6 +141,18 @@ function hosting_task_devshop_create_form($node) {
       '#description' => t('The web server the sites will be hosted on.'),
       '#options' => $servers,
       '#default_value' => $project->settings->default_environment['web_server'],
+    );
+  }
+
+  // Force the new environment to use the "default" servers.
+  if ($project->settings->default_environment['force_default_servers']) {
+    $form['web_server']['#type'] = array(
+      '#type' => 'value',
+      '#value' => $project->settings->default_environment['web_server'],
+    );
+    $form['db_server']['#type'] = array(
+      '#type' => 'value',
+      '#value' => $project->settings->default_environment['db_server'],
     );
   }
 
@@ -261,6 +276,12 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
     $servers = hosting_get_servers('db');
     reset($servers);
     $settings->db_server = key($servers);
+  }
+
+  // If "force servers" is set for the project, force them.
+  if ($project->settings->default_environment['force_default_servers']) {
+    $settings->db_server = $project->settings->default_environment['db_server'];
+    $settings->web_server = $project->settings->default_environment['web_server'];
   }
 
   // If drupal path, append to code path/environment name
