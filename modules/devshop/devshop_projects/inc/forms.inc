@@ -788,11 +788,13 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
     $environment_update = FALSE;
     $environment_cache = FALSE;
     $environment_revert = FALSE;
+    $environment_import = FALSE;
     $environment_dothooks = FALSE;
     $environment_acquia_hooks  = FALSE;
     $project_update = TRUE;
     $project_cache  = TRUE;
     $project_revert = FALSE;
+    $project_import = FALSE;
     $project_dothooks = FALSE;
     $project_acquia_hooks = FALSE;
   }
@@ -800,11 +802,15 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
     $environment_update = isset($environment->settings->deploy) ? $environment->settings->deploy['update'] : FALSE;
     $environment_cache = isset($environment->settings->deploy) ? $environment->settings->deploy['cache'] : FALSE;
     $environment_revert = isset($environment->settings->deploy) ? $environment->settings->deploy['revert'] : FALSE;
+    $environment_import = isset($environment->settings->deploy) ? $environment->settings->deploy['config_import'] : FALSE;;
+    $environment_import_path = isset($environment->settings->deploy) ? $environment->settings->deploy['config_import_path'] : FALSE;
     $environment_dothooks = isset($environment->settings->deploy) ? $environment->settings->deploy['dothooks'] : FALSE;
     $environment_acquia_hooks = isset($environment->settings->deploy) ? $environment->settings->deploy['acquia_hooks'] : FALSE;
     $project_update = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['update'] : FALSE;
     $project_cache = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['cache'] : FALSE;
     $project_revert = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['revert'] : FALSE;
+    $project_import = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['config_import'] : FALSE;
+    $project_import_path = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['config_import_path'] : FALSE;
     $project_dothooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['dothooks'] : FALSE;
     $project_acquia_hooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['acquia_hooks'] : FALSE;
   }
@@ -819,12 +825,28 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
       '#title' => t('Clear all caches.'),
       '#default_value' => empty($environment->settings->deploy)? $project_cache : $environment_cache,
   );
-  $return['revert'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Revert all features.'),
-    '#description' => t('If features is enabled, revert all of them.'),
-    '#default_value' => empty($environment->settings->deploy)? $project_revert : $environment_revert,
-  );
+  if ($environment->release->major_version == 6 || $environment->release->major_version == 7) {
+    $return['revert'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Revert all features.'),
+        '#description' => t('If features is enabled, revert all of them.'),
+        '#default_value' => empty($environment->settings->deploy) ? $project_revert : $environment_revert,
+    );
+  } elseif ($environment->release->major_version == 8) {
+    $return['config_import'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Import Config'),
+        '#description' => t('Imports configuration from files.'),
+        '#default_value' => empty($environment->settings->deploy) ? $project_import : $environment_import,
+    );
+    $return['config_import_path'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Config Path'),
+        '#description' => t('Enter the path to your configuration files.'),
+        '#default_value' => empty($environment->settings->deploy) ? $project_import_path : $environment_import_path,
+    );
+
+  }
 
   // Look for .hooks or .hooks.yml
   if (!$is_environment_form || isset($project->settings->deploy, $project->settings->deploy['default_hooks']['dothooks'])) {
