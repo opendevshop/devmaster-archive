@@ -350,6 +350,20 @@ function devshop_project_load($node) {
     )->fetchField();
     $environment->release = hosting_package_instance_load($iid);
 
+    // Set a major release... @todo is there a better way?
+    if (strpos($environment->release->version, '8') === 0) {
+      $environment->release->major_version = 8;
+    }
+    elseif (strpos($environment->release->version, '7') === 0) {
+      $environment->release->major_version = 7;
+    }
+    elseif (strpos($environment->release->version, '6') === 0) {
+      $environment->release->major_version = 6;
+    }
+    else {
+      $environment->release->major_version = NULL;
+    }
+
     // Save to project environments collection.
     drupal_alter('devshop_environment', $environment, $project);
     $environments[$environment->name] = $environment;
