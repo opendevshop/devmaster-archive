@@ -336,6 +336,20 @@ function devshop_project_load($node) {
       $environment->settings->deploy = $project->settings->deploy['default_hooks'];
     }
 
+    // Load Platform release
+    $iid = db_query("SELECT iid
+                     FROM {hosting_package_instance} i
+                     LEFT JOIN {hosting_package} p
+                     ON p.nid=i.package_id
+                     WHERE p.package_type = :package_type
+                     AND i.rid = :rid",
+        array(
+            ':package_type' => 'platform',
+            ':rid' => $environment->platform,
+        )
+    )->fetchField();
+    $environment->release = hosting_package_instance_load($iid);
+
     // Save to project environments collection.
     drupal_alter('devshop_environment', $environment, $project);
     $environments[$environment->name] = $environment;
