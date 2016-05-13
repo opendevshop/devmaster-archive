@@ -509,5 +509,11 @@ function drush_devshop_provision_pre_provision_verify() {
     $drush_aliases->write();
 
     drush_log(dt('Project Drush aliases written.'), 'devshop_log');
+
+    // Drupal Console aliases.
+    $console_aliases = new Provision_Config_ProjectAliasesConsole(d()->name, d()->project['environments']);
+    $console_aliases->write();
+
+    drush_log(dt('Project Console aliases written.'), 'devshop_log');
   }
 }
