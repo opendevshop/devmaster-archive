@@ -5,7 +5,7 @@ projects[drupal][type] = "core"
 projects[drupal][version] = "7.43"
 
 # Update this with each new release of devshop
-projects[devshop_stats][version] = "1.x"
+projects[devshop_stats][version] = "1.0.0-beta8"
 
 defaults[projects][subdir] = "contrib"
 defaults[projects][type] = "module"
@@ -66,7 +66,6 @@ projects[features][version] = "2.10"
 projects[distro_update][version] = "1"
 projects[module_filter][version] = "2"
 projects[intercomio][version] = "1"
-projects[devshop_stats][version] = "1.x"
 
 ; Bootstrap base theme
 projects[bootstrap][type] = theme
