@@ -54,6 +54,20 @@ function devshop_provision_drush_command() {
     ),
     'aliases' => array('deploy'),
   );
+  $items['provision-devshop-rebuild'] = array(
+    'description' => 'Destroys the database and replaces it with another.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'options' => array(
+      'update' => 'Run update.php after code pull.',
+      'revert' => 'Revert all features after code pull.',
+      'cache' => 'Clear all caches after code pull.',
+      'reset' => 'Runs "git reset --hard" before pulling.',
+    ),
+    'arguments' => array(
+      'source' => 'The drush alias of the site to use as the source of data.',
+    ),
+    'aliases' => array('rebuild'),
+  );
   $items['provision-test'] = array(
     'description' => 'Run a set of tests.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,

@@ -40,6 +40,12 @@ function devshop_projects_hosting_tasks() {
     'access callback' => 'devshop_hosting_task_menu_access',
     'dialog' => TRUE,
   );
+  $tasks['site']['devshop-rebuild'] = array(
+    'title' => t('Rebuild'),
+    'description' => t("Destroy an environment's data and rebuild it from another environment."),
+    'access callback' => 'devshop_hosting_task_menu_access',
+    'dialog' => TRUE,
+  );
   return $tasks;
 }
 
