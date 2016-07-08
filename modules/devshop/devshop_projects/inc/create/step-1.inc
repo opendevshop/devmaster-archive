@@ -28,7 +28,7 @@ function devshop_project_create_step_git($form, $form_state) {
     // Check for "host key"
     if (strpos($project->verify_error, 'Host key verification failed')) {
       $form['help'] = array(
-        '#markup' => t('Looks like you need to authorize this host.  SSH into the server as <code>aegir</code> user and run the command <code>git ls-remote !repo</code>. <hr />Add <code>StrictHostKeyChecking no</code> to your <code>~/.ssh/config</code> file to avoid this for all domains in the future.', array(
+        '#markup' => t('Looks like you need to authorize this host.  SSH into the server as <code>aegir</code> user and run the command <code>git ls-remote !repo</code>. <hr />Add <code>StrictHostKeyChecking no</code> to your <code>/var/aegir/.ssh/config</code> file to avoid this for all domains in the future.', array(
           '!repo' => $project->git_url,
         )),
         '#prefix' => '<div class="alert alert-warning">',
