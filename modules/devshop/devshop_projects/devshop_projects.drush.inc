@@ -339,7 +339,7 @@ function devshop_projects_post_hosting_verify_task($task, $data) {
     }
 
     // If the project doesn't have an install profile chosen yet, bail.
-    if (empty($platform->project->install_profile)) {
+    if (!empty($platform->project) && empty($platform->project->install_profile)) {
       drush_log('[DEVSHOP] No install profile found for this project. Not doing anything.', 'ok');
       return;
     }
