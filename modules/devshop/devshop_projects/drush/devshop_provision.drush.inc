@@ -125,6 +125,11 @@ function devshop_provision_provision_drupal_config($uri, $data, $config = NULL) 
   $environment = d()->environment;
   $project = d()->project;
 
+  // If no environment found, do nothing.
+  if (empty($environment)) {
+    return;
+  }
+
   return <<<PHP
 
   # This site's devshop project name and environment name.
