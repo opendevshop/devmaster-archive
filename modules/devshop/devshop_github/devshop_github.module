@@ -54,7 +54,6 @@ function devshop_github_form_project_node_form_alter(&$form, &$form_state, $form
   );
 
   // Pull Requests create environments?
-  // $form['github']['pull_request_environments'] = array(
   $form['project']['settings']['github']['pull_request_environments'] = array(
       '#type' => 'checkbox',
       '#title' => t('Create Environments for Pull Requests'),
@@ -63,7 +62,6 @@ function devshop_github_form_project_node_form_alter(&$form, &$form_state, $form
   );
 
   // Delete Pull Request environments?
-  // $form['github']['pull_request_environments_delete'] = array(
   $form['project']['settings']['github']['pull_request_environments_delete'] = array(
       '#type' => 'checkbox',
       '#title' => t('Delete Pull Request Environments'),
@@ -72,8 +70,6 @@ function devshop_github_form_project_node_form_alter(&$form, &$form_state, $form
   );
 
   // Pull Request Environment method.
-  // $form['github']['pull_request_environments_method'] = array(
-
   $environments = array_keys($node->project->environments);
   $options = array(
     t('Install Drupal') => array(
