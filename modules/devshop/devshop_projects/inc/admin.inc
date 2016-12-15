@@ -48,7 +48,7 @@ function devshop_projects_settings_form($form, &$form_state) {
     '#title' => t('Domain Name Pattern'),
     '#type' => 'textfield',
     '#description' => t('Each environment (aegir site) gets an initial URL. You can use @project for project name and @hostname for "%host". Environments are put underneath this URL as subdomains.', array('%host' => $_SERVER['SERVER_NAME'])),
-    '#default_value' => variable_get('devshop_project_environment_url_pattern', '@environment.@project.@hostname'),
+    '#default_value' => variable_get('devshop_project_environment_url_pattern', '@project.@environment.@hostname'),
   );
 
   $form['support'] = array(
