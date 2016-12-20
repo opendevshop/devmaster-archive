@@ -500,6 +500,7 @@ function devshop_github_webhook($project_node) {
           // Only pull if deploy is not disabled or if environment is tracking a tag.
           if (
 //            @TODO: Improve this. If a site install failed, it shows up as "disabled", so we should still do a git pull.
+            $environment->site_status == HOSTING_SITE_ENABLED &&
             $git_ref == $environment->git_ref &&
             !$environment->settings->pull_disabled &&
             !in_array($environment->git_ref, $project->settings->git['tags'])
