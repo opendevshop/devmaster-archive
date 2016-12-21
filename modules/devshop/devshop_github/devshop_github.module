@@ -603,10 +603,15 @@ function devshop_github_webhook($project_node) {
 
               $params = new stdClass();
               $params->ref = $sha;
-              $params->environment = $environment->url;
+
+              // Just in case the URL field is not populated, generate the domain from domain name pattern.
+              $params->environment = empty($environment->url)?
+                $environment->url:
+                devshop_environment_url($project, $environment_name)
+              ;
               $params->required_contexts = array();
 
-              // $message .= "\nEnvironment: " . print_r($environment, 1);
+              $message .= "\nEnvironment: " . $environment_name;
               $message .= "\nDeployment Params: " . print_r($params, 1);
 
               $post_url = "/repos/$owner/$repo/deployments";
