@@ -274,6 +274,9 @@ HTML;
       elseif ($action == 'delete') {
         $tasks[$action]['title'] = '<i class="fa fa-trash-o"></i> ' . t('Destroy Environment');
       }
+      elseif ($action == 'reinstall') {
+        $tasks[$action]['title'] = '<i class="fa fa-refresh"></i> ' . t('Reinstall Environment');
+      }
 
       $href = "hosting_confirm/{$environment->site}/site_{$action}";
       $options = array(

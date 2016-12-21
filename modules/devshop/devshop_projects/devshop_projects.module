@@ -164,6 +164,11 @@ function devshop_projects_devshop_environment_menu($environment) {
       }
     }
 
+    // Add reinstall task.
+    if (module_exists('hosting_site_reinstall') && !$environment->settings->locked) {
+      $items[] = 'reinstall';
+    }
+
     $items[] = '<div class="divider"></div>';
 
     // Add export and import config buttons.
