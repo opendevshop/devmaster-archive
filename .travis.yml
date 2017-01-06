@@ -45,6 +45,7 @@ env:
   # This should match the list of hosts below so that requests resolve to the container.
   global:
     - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis test.drpl8.devshop.travis'
+    - DEVSHOP_VERSION=1.x
 addons:
   hosts:
     - devshop.travis
@@ -57,8 +58,7 @@ services:
   - docker
 
 before_install:
-  # Clone devshop
-  - export DEVSHOP_VERSION=1.x
+  # Clone devshop, which includes the tests. Set the version above in global environment variables.
   - git clone http://github.com/opendevshop/devshop
   - cd devshop
   - git checkout -qf ${DEVSHOP_VERSION}
