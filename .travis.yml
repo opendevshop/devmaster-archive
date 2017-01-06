@@ -20,7 +20,7 @@ env:
   global:
     # An entry for each site we are testing is needed.
     - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis test.drpl8.devshop.travis'
-    - DEVSHOP_VERSION=1.x
+    - DEVSHOP_VERSION=view-site-link
 
   matrix:
   - test="Upgrade"
