@@ -18,7 +18,10 @@
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close btn btn-lg" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <a href="<?php print url($environment->url); ?>" target="_blank" class='btn btn-default btn-sm'><?php print t('View Site'); ?> <i class="fa fa-external-link-square pull-right"></i> </a>
+              <a href="<?php print url($environment->url); ?>" target="_blank" class='btn btn-default btn-sm pull-right'><?php print t('View Site'); ?> <i class="fa fa-external-link-square"></i> </a>
+
+                &nbsp;
+
               <h4 class="modal-title" id="infoModalLabel<?php print $environment->site ?>"><?php print t('Environment Information') ?> <small><?php print $environment->name; ?></small>
               </h4>
             </div>
