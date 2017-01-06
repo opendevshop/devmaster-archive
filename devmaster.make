@@ -36,7 +36,6 @@ projects[hosting_site_backup_manager][version] = "3.8"
 
 projects[hosting_tasks_extra][subdir] = aegir
 projects[hosting_tasks_extra][version] = "3.8"
-projects[hosting_tasks_extra][patch][] = "https://www.drupal.org/files/issues/2838431-add-reinstall_0.patch"
 
 projects[hosting_filemanager][subdir] = aegir
 projects[hosting_logs][subdir] = aegir
