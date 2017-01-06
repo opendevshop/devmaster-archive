@@ -7,7 +7,21 @@ branches:
   only:
     - 1.x
 
+addons:
+  hosts:
+    # An entry for each site we are testing is needed.
+    - devshop.travis
+    - dev.projectname.devshop.travis
+    - live.projectname.devshop.travis
+    - dev.drpl8.devshop.travis
+    - test.drpl8.devshop.travis
+
 env:
+  global:
+    # An entry for each site we are testing is needed.
+    - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis test.drpl8.devshop.travis'
+    - DEVSHOP_VERSION=1.x
+
   matrix:
   - test="Upgrade"
     distribution="ubuntu"
@@ -43,16 +57,6 @@ env:
 #    run_opts: ""
 #    script: "--server-webserver=nginx"
   # This should match the list of hosts below so that requests resolve to the container.
-  global:
-    - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis test.drpl8.devshop.travis'
-    - DEVSHOP_VERSION=1.x
-addons:
-  hosts:
-    - devshop.travis
-    - dev.projectname.devshop.travis
-    - live.projectname.devshop.travis
-    - dev.drpl8.devshop.travis
-    - test.drpl8.devshop.travis
 
 services:
   - docker
