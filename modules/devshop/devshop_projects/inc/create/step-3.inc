@@ -56,6 +56,15 @@ function devshop_project_create_step_environments($form, &$form_state) {
     );
 
     // Environment properties
+  
+    // Generate field prefix and suffix using domain name pattern.
+    // @TODO: When per-project patterns are added, look for that setting instead of the variable.
+    $pattern = variable_get('devshop_project_environment_url_pattern', '@project.@environment.@hostname');
+  
+    $labels = explode('@environment', strtr($pattern, array(
+      '@project' => $project->name,
+      '@hostname' => $_SERVER['SERVER_NAME'],
+    )));
     $form['project']['environments'][$name]['name'] = array(
       '#type' => 'textfield',
       '#default_value' => $env_title,
@@ -64,8 +73,9 @@ function devshop_project_create_step_environments($form, &$form_state) {
       '#attributes' => array(
         'placeholder' => t('name'),
       ),
-      '#field_prefix' => 'http://',
-      '#field_suffix' => "." . $project->base_url,
+      '#field_prefix' => '<div class="input-group"><div class="input-group-addon">http://' . $labels[0] . '</div>',
+      '#field_suffix' => '<div class="input-group-addon input-group-addon-url">' . $labels[1] .'</div>
+        </div>',
     );
     $form['project']['environments'][$name]['site'] = array(
       '#type' => 'value',
@@ -296,10 +306,14 @@ function devshop_project_create_step_environments_submit(&$form, &$form_state) {
       $platform->title = $project->name . '_' . $name;
 
       // Platform publish_path
-      if (!empty($project->drupal_path)) {
+  
+      // If drupal path is set, repo path and platform path are different. Append drupal_path to repo path to create publish path.
+      if ($project->drupal_path) {
+        $platform->git['repo_path'] = $project->code_path . '/' . $environment->name;
         $platform->publish_path = $project->code_path . '/' . $environment->name . '/' . $project->drupal_path;
       }
       else {
+        $platform->git['repo_path'] = $project->code_path . '/' . $environment->name;
         $platform->publish_path = $project->code_path . '/' . $environment->name;
       }
 
