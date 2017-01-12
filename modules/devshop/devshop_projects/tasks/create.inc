@@ -34,10 +34,6 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   $site->platform_node = new stdClass();
   $site->platform_node->title = $project->name . '_' . $new_environment_name;
 
-  // Specify GIT Url for hosting_git.module
-  $site->platform_node->git['repo_url'] = $project->git_url;
-  $site->platform_node->git['git_ref'] = $new_environment_branch;
-
   // Determine which web server to use.
   // If no web server was set and project has a default, make sure we set it.
   if (empty($settings->web_server) && !empty($project->settings->default_environment['web_server'])) {
@@ -72,14 +68,20 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   $site->db_server = $settings->db_server;
   $site->platform_node->web_server = $settings->web_server;
 
-  // If drupal path, append to code path/environment name
+  // If drupal path is set, repo path and platform path are different. Append drupal_path to repo path to create publish path.
   if ($project->drupal_path) {
+    $site->platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
     $site->platform_node->publish_path = $project->code_path . '/' . $new_environment_name . '/' . $project->drupal_path;
   }
   else {
+    $site->platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
     $site->platform_node->publish_path = $project->code_path . '/' . $new_environment_name;
   }
-
+  
+  // Specify GIT Url for hosting_git.module
+  $site->platform_node->git['repo_url'] = $project->git_url;
+  $site->platform_node->git['git_ref'] = $new_environment_branch;
+  
   // Save the site node, along with the platform.
   // This is possible thanks to the patch in https://www.drupal.org/node/2824731
   if ($site = node_submit($site)) {
