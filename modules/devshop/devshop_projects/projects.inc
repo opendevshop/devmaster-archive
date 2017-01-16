@@ -136,6 +136,7 @@ function devshop_project_load($node) {
           p.status as platform_status,
           p.publish_path as root,
           p.publish_path as publish_path,
+          p.makefile as makefile,
           g.git_ref as git_ref,
           g.repo_url as git_url,
           g.repo_path as repo_path,
