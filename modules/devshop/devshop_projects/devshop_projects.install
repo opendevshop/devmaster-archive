@@ -111,12 +111,12 @@ function devshop_projects_schema() {
         'unsigned' => TRUE,
         'description' => 'The node ID of the site for this environment.',
       ),
-      'platform' => array(
+      'platform_first' => array(
         'type' => 'int',
         'not null' => FALSE,
         'default' => 0,
         'unsigned' => TRUE,
-        'description' => 'The node ID of the platform for this environment.',
+        'description' => 'The node ID of the first platform this environment used.',
       ),
       'settings' => array(
         'type' => 'text',
@@ -460,4 +460,17 @@ function devshop_projects_update_7008 () {
     ->condition('name', 'devshop_projects')
     ->execute();
 
+}
+
+/**
+ * Rename environment field platform to platform_first.
+ */
+function devshop_projects_update_7009 () {
+  db_change_field('hosting_devshop_project_environment', 'platform', 'platform_first', array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'default' => 0,
+    'unsigned' => TRUE,
+    'description' => 'The node ID of the first platform this environment used.',
+  ));
 }

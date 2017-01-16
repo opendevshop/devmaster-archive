@@ -37,6 +37,7 @@ function devshop_projects_entity_load($entities, $type) {
 SELECT
   project_nid, name, n.title as project_name FROM {hosting_devshop_project_environment} e 
   LEFT JOIN {node} n ON e.project_nid = n.nid
+  LEFT JOIN {hosting_site} s ON e.site = s.nid
   WHERE site  = :site
     OR platform = :platform
     OR project_nid = :project
@@ -156,7 +157,7 @@ function devshop_project_load($node) {
         FROM {hosting_devshop_project_environment} e
         LEFT JOIN {hosting_site} s ON e.site = s.nid
         LEFT JOIN {node} sn ON s.vid = sn.vid
-        LEFT JOIN {hosting_platform} p ON s.platform = p.nid OR e.platform = p.nid
+        LEFT JOIN {hosting_platform} p ON s.platform = p.nid
         LEFT JOIN {hosting_git} g ON p.nid = g.nid
         LEFT JOIN {node} http ON p.web_server = http.nid
         LEFT JOIN {node} db ON s.db_server = db.nid
@@ -177,7 +178,13 @@ function devshop_project_load($node) {
     if ($environment->platform_status == HOSTING_PLATFORM_DELETED) {
       continue;
     }
-
+  
+    // If platform is null, look for it in settings.
+    // This happens in the Project create wizard because we create the platforms first, then the sites.
+    if (empty($environment->platform) && !empty($environment->platform_first)) {
+      $environment->platform = $environment->platform_first;
+    }
+  
     // Drush alias
     $environment->drush_alias = "@{$project->name}.{$environment->name}";
 

@@ -63,7 +63,7 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   $form['project']['codebase']['drupal_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to Drupal'),
-    '#description' => t('Enter the relative path to the index.php file in your repository. Leave blank if index.php is in the root.'),
+    '#description' => t('Enter the relative path to the index.php file in your repository. Leave blank if index.php is in the root. If using a makefile, this is the path where Drupal will be built.'),
     '#size' => 40,
     '#default_value' => $project->drupal_path,
     '#maxlength' => 255,
@@ -71,6 +71,20 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
     '#parents' => array(
       'project',
       'drupal_path',
+    ),
+  );
+  $form['project']['codebase']['makefile_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path to Makefile'),
+    '#description' => t('Enter the relative path to a makefile inside your repository. Leave blank if a full Drupal codebasee is in the repository.'),
+    '#size' => 40,
+    '#default_value' => $project->settings->makefile_path,
+    '#maxlength' => 255,
+    '#weight' => 4,
+    '#parents' => array(
+      'project',
+      'settings',
+      'makefile_path',
     ),
   );
   $form['project']['codebase']['base_url'] = array(
@@ -306,6 +320,10 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   // Install Profile
   $available_profiles = array();
   foreach ($project->environments as $name => $environment) {
+    // Passing null to hosting_get_profiles returns all profiles.
+    if (is_null($environment->platform)) {
+      continue;
+    }
     $profiles_shortnames = hosting_get_profiles($environment->platform, 'short_name');
     if (is_array($profiles_shortnames) && !empty($profiles_shortnames)) {
       $profiles[$name] = array_combine($profiles_shortnames, (array)hosting_get_profiles($environment->platform));
@@ -1230,7 +1248,15 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
     else {
       $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
     }
-
+    
+    // Set Repo Path so hosting_git.module knows where to clone it.
+    $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
+  
+    // If project uses a makefile, set it.
+    if (!empty($project->settings->makefile_path)) {
+      $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
+    }
+    
     // Set value in form_state.
     form_set_value($form['platform_node'], $platform_node, $form_state);
     form_set_value($form['profile'], 0, $form_state);
