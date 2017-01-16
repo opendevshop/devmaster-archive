@@ -90,13 +90,6 @@ function devshop_projects_schema() {
         'unsigned' => TRUE,
         'description' => 'The node ID of the site for this environment.',
       ),
-      'platform' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-        'default' => 0,
-        'unsigned' => TRUE,
-        'description' => 'The node ID of the platform for this environment.',
-      ),
       'settings' => array(
         'type' => 'text',
         'not null' => FALSE,
@@ -439,4 +432,11 @@ function devshop_projects_update_7008 () {
     ->condition('name', 'devshop_projects')
     ->execute();
 
+}
+
+/**
+ * Remove platform column from devshop tables.
+ */
+function devshop_projects_update_7009 () {
+  db_drop_field('hosting_devshop_project_environments', 'platform');
 }
