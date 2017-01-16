@@ -292,7 +292,7 @@ function devshop_project_create_step_environments_submit(&$form, &$form_state) {
         ->fields(array(
           'project_nid' => $form_state['values']['nid'],
           'name' => $environment->name,
-          'platform' => $environment->platform,
+          'platform_first' => $environment->platform,
           'settings' => serialize($environment->settings),
         ))
         ->execute();
@@ -320,7 +320,12 @@ function devshop_project_create_step_environments_submit(&$form, &$form_state) {
       // Git information
       $platform->git['repo_url'] = $project->git_url;
       $platform->git['git_ref'] = $environment->git_ref;
-
+      
+      // If project has a path to makefile, set it.
+      if (isset($project->settings->makefile_path) && !empty($project->settings->makefile_path)) {
+        $platform->makefile = $platform->git['repo_path'] . '/' . $project->settings->makefile_path;
+      }
+      
       // Other attributes
       $platform->web_server = $environment->settings->web_server;
       $platform->db_server = $environment->settings->db_server;
@@ -341,10 +346,10 @@ function devshop_project_create_step_environments_submit(&$form, &$form_state) {
       }
       $environment->platform = $platform->nid;
 
-      // Update environment with our platform
+      // Update environment with the first platform NID.
       db_update('hosting_devshop_project_environment')
         ->fields(array(
-          'platform' => $environment->platform,
+          'platform_first' => $environment->platform,
         ))
         ->condition('project_nid', $form_state['values']['nid'])
         ->condition('name', $environment->name)
@@ -359,8 +364,8 @@ function devshop_project_create_step_environments_submit(&$form, &$form_state) {
 
   // For all removed platforms, trigger a delete task
   $removed_environments = array_diff_key($project->environments, $environments);
-  foreach ($removed_environments as $environment_name => $settings) {
-    $platform_nid = $settings->platform;
+  foreach ($removed_environments as $environment_name => $environment) {
+    $platform_nid = $environment->platform;
     $platform_node = node_load($platform_nid);
 
     // Determine what to do here based on task status...
