@@ -84,6 +84,14 @@
                 </label>
                 <?php print $environment->publish_path; ?>
               </section>
+                <?php if ($environment->makefile): ?>
+              <section>
+                <label>
+                  Makefile Path
+                </label>
+                <?php print $environment->makefile; ?>
+              </section>
+              <?php endif; ?>
             </div>
             <div class="modal-body">
               <h4><?php print t('Deploy Hooks'); ?></h4>
