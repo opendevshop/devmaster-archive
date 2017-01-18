@@ -14,12 +14,12 @@ addons:
     - dev.projectname.devshop.travis
     - live.projectname.devshop.travis
     - dev.drpl8.devshop.travis
-    - test.drpl8.devshop.travis
+    - testenv.drpl8.devshop.travis
 
 env:
   global:
     # An entry for each site we are testing is needed.
-    - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis test.drpl8.devshop.travis'
+    - SITE_HOSTS='dev.drup.devshop.travis dev.projectname.devshop.travis live.projectname.devshop.travis testenv.drpl8.devshop.travis'
     - DEVSHOP_VERSION=view-site-link
 
   matrix:
