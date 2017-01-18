@@ -190,5 +190,6 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
   }
 
   // Queue up a verification of the platform.
+  // @TODO: Run verify in drush command, kick off platform post verify here to avoid an extra task.
   hosting_add_task($task->ref->environment->platform, 'verify');
 }
