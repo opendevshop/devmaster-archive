@@ -1183,7 +1183,8 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
  * @param $form
  */
 function devshop_projects_create_environment_form_validate_name($element, &$form_state, $form) {
-
+  
+  $new_environment_name = &$element['#value'];
   if (!empty($element['#value'])) {
     $project_node = node_load($form_state['values']['project_nid']);
     $project = $project_node->project;
@@ -1228,21 +1229,32 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
     else {
       $platform_node->web_server = $form_state['values']['web_server'];
     }
-
-    // If drupal path, append to code path/environment name
+  
+    // Determine Paths
+    // If makefile is used, set git repo_path to a "build directory" using tempnam()
+    if ($project->settings->makefile_path) {
+      
+      // Get a build ID
+      $build_id = uniqid('build-');
+      
+      //  Clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT/$ENVIRONMENT_uniquerandomname
+      $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name . '/' . $build_id;
+      
+      // Set makefile property.
+      $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
+  
+    }
+    // If not using makefiles, clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT
+    else {
+      $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
+    }
+  
+    // Append drupal_path to repo_path if there is one. If not, repo_path is publish_path.
     if ($project->drupal_path) {
-      $platform_node->publish_path = $project->code_path . '/' . $element['#value'] . '/' . $project->drupal_path;
+      $platform_node->publish_path = $platform_node->git['repo_path'] . '/' . $project->drupal_path;
     }
     else {
-      $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
-    }
-    
-    // Set Repo Path so hosting_git.module knows where to clone it.
-    $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
-  
-    // If project uses a makefile, set it.
-    if (!empty($project->settings->makefile_path)) {
-      $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
+      $platform_node->publish_path = $platform_node->git['repo_path'];
     }
     
     // Set value in form_state.
