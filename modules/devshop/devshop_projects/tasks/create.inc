@@ -67,16 +67,37 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   // Now that desired servers have been determined, save to their respective nodes.
   $site->db_server = $settings->db_server;
   $site->platform_node->web_server = $settings->web_server;
-
-  // If drupal path is set, repo path and platform path are different. Append drupal_path to repo path to create publish path.
+  
+  
+  // Determine Paths
+  $platform_node = &$site->platform_node;
+  
+  // If makefile is used, set git repo_path to a "build directory" using tempnam()
+  if ($project->settings->makefile_path) {
+    
+    // Get a build ID
+    $build_id = uniqid('build-');
+    
+    //  Clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT/$ENVIRONMENT_uniquerandomname
+    $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name . '/' . $build_id;
+    
+    // Set makefile property.
+    $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
+    
+  }
+  // If not using makefiles, clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT
+  else {
+    $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
+  }
+  
+  // Append drupal_path to repo_path if there is one. If not, repo_path is publish_path.
   if ($project->drupal_path) {
-    $site->platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
-    $site->platform_node->publish_path = $project->code_path . '/' . $new_environment_name . '/' . $project->drupal_path;
+    $platform_node->publish_path = $platform_node->git['repo_path'] . '/' . $project->drupal_path;
   }
   else {
-    $site->platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
-    $site->platform_node->publish_path = $project->code_path . '/' . $new_environment_name;
+    $platform_node->publish_path = $platform_node->git['repo_path'];
   }
+  
   
   // Specify GIT Url for hosting_git.module
   $site->platform_node->git['repo_url'] = $project->git_url;
