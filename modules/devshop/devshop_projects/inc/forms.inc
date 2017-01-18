@@ -76,7 +76,7 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   $form['project']['codebase']['makefile_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to Makefile'),
-    '#description' => t('Enter the relative path to a makefile inside your repository. Leave blank if a full Drupal codebasee is in the repository.'),
+    '#description' => t('Enter the relative path to a makefile inside your repository. Leave blank if a full Drupal codebase is in the repository.'),
     '#size' => 40,
     '#default_value' => $project->settings->makefile_path,
     '#maxlength' => 255,
