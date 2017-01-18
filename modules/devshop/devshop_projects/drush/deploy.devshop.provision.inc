@@ -56,37 +56,40 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
 
     // Checkout the chosen ref
     $git_checkout_output = devshop_drush_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
-
-    // Run Git Pull
-    if ($desired_ref_type == 'branch') {
-
-      $git_pull_output = devshop_drush_process("git pull", d()->platform->repo_path, dt('DevShop Deploy'));
-      devshop_drush_process("git submodule update --init --recursive --force ",  d()->platform->repo_path, dt('DevShop Deploy'));
-    }
-
-    devshop_drush_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
   
-    // Mock for testing...
-    /*
-    $git_fetch_output = <<<CLI
+    // If platform does not have a makefile, a straight git pull is possible.
+    if (empty(d()->platform->makefile)) {
+      // Run Git Pull
+      if ($desired_ref_type == 'branch') {
+    
+        $git_pull_output = devshop_drush_process("git pull", d()->platform->repo_path, dt('DevShop Deploy'));
+        devshop_drush_process("git submodule update --init --recursive --force ", d()->platform->repo_path, dt('DevShop Deploy'));
+        devshop_drush_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
+      }
+    }
+    // If platform does have makefile,
+    else {
+      
+      // Check if `git fetch` returned any new items on our branch.
+      // Mock for testing...
+      /*
+      $git_fetch_output = <<<CLI
 Fetching origin
 From https://github.com/terra-ops/example-drush-make
    4c57911..4391f85  master     -> origin/master
 CLI;
-  /*  */
-    
-    // If the chosen branch has an update, set a drush option that can be checked later.
-    // Then, hosting_git.drush.inc reacts to the import task and creates the site migration task.
-    //
-    // Example output:
-    //    4c57911..4391f85  master     -> origin/master
-    if (d()->platform->makefile && strpos($git_fetch_output, "origin/{$git_ref}") !== FALSE) {
-      drush_log(dt('Updates to !branch detected. New Build is required.', array(
-        '!branch' => $git_ref,
-      )), 'devshop_log');
+    /*  */
   
-      // Set option for hosting_git.drush.inc to detect in a post verify hook.
-      drush_set_option('new_build_required', TRUE, 'site');
+      // If the chosen branch has an update, set a drush option that can be checked later.
+      if (strpos($git_fetch_output, "origin/{$git_ref}") !== FALSE) {
+        drush_log(dt('Updates to !branch detected. New Build is required.', array(
+          '!branch' => $git_ref,
+        )), 'devshop_log');
+        drush_log(dt('Skipping post-deploy hooks.'), 'devshop_log');
+    
+        // Set option for hosting_git.drush.inc to detect in a post verify hook.
+        drush_set_option('new_build_required', TRUE);
+      }
     }
 }
 
@@ -97,7 +100,6 @@ function drush_devshop_provision_post_provision_devshop_deploy($git_ref = '') {
 
   // If a new build is required, these hooks must happen post migrate instead of post deploy.
   if (drush_get_option('new_build_required', FALSE)) {
-    drush_log(dt('Skipping post-deploy hooks.'), 'devshop_log');
     return;
   }
   
