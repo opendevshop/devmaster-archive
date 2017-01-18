@@ -45,17 +45,17 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
   $project = (object) d("@project_{$project_name}")->project;
   $environment = (object) $project->environments[d()->environment];
   $desired_ref_type = $project->settings['git']['refs'][$git_ref];
-
-    drush_log('[Current Working Directory]' . $environment->repo_path, 'devshop_log');
+  
+    drush_log('[Current Working Directory]' . d()->platform->repo_path, 'devshop_log');
 
     // Stash any changes? Not sure if we should do this anymore...
     // $git->command('stash');
 
     // Fetch
-    devshop_drush_process("git fetch --all", $environment->repo_path, dt('DevShop Deploy'));
+    devshop_drush_process("git fetch --all", d()->platform->repo_path, dt('DevShop Deploy'));
 
     // Checkout the chosen ref
-    $git_checkout_output = devshop_drush_process("git checkout {$git_ref}", $environment->repo_path, dt('DevShop Deploy'));
+    $git_checkout_output = devshop_drush_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
     $git_checkout_output_lines = explode("\n", $git_checkout_output);
 
     // Run Git Pull
