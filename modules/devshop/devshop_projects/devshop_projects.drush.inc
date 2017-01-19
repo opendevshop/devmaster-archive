@@ -324,7 +324,7 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
   // Doing this post deploy ensures it was actually checked out.
   $git_ref = trim(str_replace('refs/heads/', '', shell_exec("cd {$task->ref->environment->repo_path}; git describe --tags --exact-match || git symbolic-ref -q HEAD")));;
   drush_log(dt('[DEVSHOP] Environment Deployed.  Current git ref !git_ref saved.', array(
-    'git_ref' => $git_ref,
+    '!git_ref' => $git_ref,
   )), 'devshop_log');
   
   
@@ -368,15 +368,43 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
     
     // Reload platform node to get all properties.
     $platform_node = node_load($platform_node->nid);
+    if ($platform_node->nid && $platform_node->hosting_name) {
+      drush_log(dt('Platform !link created, verifying...', array(
+        '!link' => l($platform_node->title, "node/{$platform_node->nid}")
+      )), 'devshop_log');
+    }
     
-    drush_log('[platform] ' . print_r($platform_node, 1), 'devshop_ok');
-    
-    // Invoke hosting task verify
+    // Invoke hosting task verify for the new platform. This clones the code and runs drush make.
     provision_backend_invoke('@hostmaster', 'hosting-task', array($platform_node->hosting_name, 'verify'));
     
-    // TODO: Detect task status and run migrate if successful.
-    
-    
+    // Reload the node again to ensure it's been verified
+    $platform_node = node_load($platform_node->nid, NULL, TRUE);
+    if ($platform_node->verified) {
+      drush_log(dt('Platform verified successfully! Migrating site...'), 'devshop_log');
+      $backend_data = provision_backend_invoke('@hostmaster', 'hosting-task', array($task->ref->hosting_name, 'migrate', $platform_node->nid), array(
+        'profile' => $task->ref->profile_name,
+        'strict' => FALSE,
+      ));
+
+      $site_node = node_load($task->ref->nid);
+      
+      if ($site_node->platform == $platform_node->nid) {
+        drush_log(dt('Site !site has been deployed to the new platform !platform.', array(
+          '!site' => l($site_node->title, "node/{$site_node->nid}"),
+          '!platform' => l($platform_node->title, "node/{$site_node->nid}"),
+        )), 'devshop_log');
+      }
+      else {
+        $migrate_task_nid = key($site_node->environment->tasks['migrate']);
+        drush_log(dt('Migration to new platform failed. !logs and try again.', array(
+          '!logs' => l(dt('Check the logs'), "node/$migrate_task_nid"),
+        )));
+        return drush_set_error('DEVSHOP_DEPLOY', dt('Migrate task failed.'));
+      }
+    }
+    else {
+      return drush_set_error('DEVSHOP_DEPLOY', dt('New platform unable to be created. Check your makefile and try again.'));
+    }
   }
 }
 
