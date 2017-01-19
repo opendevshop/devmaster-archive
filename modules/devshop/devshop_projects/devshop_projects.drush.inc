@@ -322,10 +322,12 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 
   // Save the deployed git ref to the environment record.
   // Doing this post deploy ensures it was actually checked out.
-  drush_log('[DEVSHOP] Environment Deployed.  Saving new git ref to project settings.');
-
   $git_ref = trim(str_replace('refs/heads/', '', shell_exec("cd {$task->ref->environment->repo_path}; git describe --tags --exact-match || git symbolic-ref -q HEAD")));;
-
+  drush_log(dt('[DEVSHOP] Environment Deployed.  Current git ref !git_ref saved.', array(
+    'git_ref' => $git_ref,
+  )), 'devshop_log');
+  
+  
   $args = array(
     ':git' => $git_ref,
     ':site' => $task->ref->environment->site,
@@ -340,6 +342,42 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 
   // Queue up a verification of the platform.
   hosting_add_task($task->ref->environment->platform, 'verify');
+  
+  // Detect if new build is required and then do it.
+  // @see drush_devshop_provision_provision_devshop_deploy()
+  if (isset($data['context']['new_build_required']) && $data['context']['new_build_required']) {
+    drush_log('Hey there! Build a new environment!!', 'devshop_log');
+    
+    // To Rebuild an existing site:
+    //   1. Create platform node.
+    //   2. Verify platform node.
+    //   3. If successful, trigger migrate task.
+    //   4. If migrate is successful, delete old platform.
+    //  @TODO: Add --force option to migrate task to allow completion regardless of errors.
+
+    $old_platform = node_load($task->ref->platform);
+    $platform_node = devshop_prepare_platform_node($task->ref->project, $task->ref->environment->name, $git_ref, $old_platform->web_server);
+    
+    $platform_node->uid = $old_platform->uid;
+    $platform_node->name = $old_platform->name;
+    $platform_node->no_verify = TRUE;
+  
+    if ($platform_node = node_submit($platform_node)) {
+      node_save($platform_node);
+    }
+    
+    // Reload platform node to get all properties.
+    $platform_node = node_load($platform_node->nid);
+    
+    drush_log('[platform] ' . print_r($platform_node, 1), 'devshop_ok');
+    
+    // Invoke hosting task verify
+    provision_backend_invoke('@hostmaster', 'hosting-task', array($platform_node->hosting_name, 'verify'));
+    
+    // TODO: Detect task status and run migrate if successful.
+    
+    
+  }
 }
 
 // @TODO: Remove this function. This is not needed now that we create site nodes at environment create time.
