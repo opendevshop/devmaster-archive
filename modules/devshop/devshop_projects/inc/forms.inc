@@ -1215,9 +1215,32 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
 
 /**
  * Helper to prepare the platform object to be attached to the site node.
+ *
+ * Example:
+ *
+ *   $platform = devshop_prepare_platform_node($project, $environment_name, $git_ref, $web_server, $prepare_node);
+ *   if ($platform = node_submit($platform)) {
+ *     node_save($platform);
+ *   }
+ *
+ * @param $project
+ *   A fully loaded project object.
+ *
+ * @param $environment_name
+ *   The name of the environment.
+ *
+ * @param $git_ref
+ *   The desired git reference for the environment.
+ *
+ * @param $web_server
+ *   The NID of a web server to use for this platform.
+ *
+ * @return stdClass
+ *   A populated object ready for node_submit and node_save.
  */
 function devshop_prepare_platform_node($project, $environment_name, $git_ref, $web_server) {
   $platform_node = new stdClass();
+  $platform_node->type = 'platform';
   $platform_node->title = $project->name . '_' . $environment_name;
   
   // Specify GIT Url for hosting_git.module
@@ -1249,14 +1272,15 @@ function devshop_prepare_platform_node($project, $environment_name, $git_ref, $w
   if ($project->settings->makefile_path) {
     
     // Get a build ID
-    $build_id = uniqid('build-');
+    $build_id = uniqid();
     
     //  Clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT/$ENVIRONMENT_uniquerandomname
-    $platform_node->git['repo_path'] = $project->code_path . '/' . $environment_name . '/' . $build_id;
+    $platform_node->git['repo_path'] = $project->code_path . '/' . $environment_name . '/build_' . $build_id;
     
     // Set makefile property.
     $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
-    
+  
+    $platform_node->title .= '_' . $build_id;
   }
   // If not using makefiles, clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT
   else {
