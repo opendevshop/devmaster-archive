@@ -31,21 +31,7 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   $site->client = HOSTING_DEFAULT_CLIENT;
 
   // Attach a new platform node.
-  $site->platform_node = new stdClass();
-  $site->platform_node->title = $project->name . '_' . $new_environment_name;
-
-  // Determine which web server to use.
-  // If no web server was set and project has a default, make sure we set it.
-  if (empty($settings->web_server) && !empty($project->settings->default_environment['web_server'])) {
-    $settings->web_server = $project->settings->default_environment['web_server'];
-  }
-  elseif (empty($settings->web_server)) {
-    $servers = hosting_get_servers('http');
-    reset($servers);
-
-    // If no web server was set, make sure we set it.
-    $settings->web_server = key($servers);
-  }
+  $site->platform_node = devshop_prepare_platform_node($project, $new_environment_name, $new_environment_branch, $settings->web_server);
 
   // Set db server to the project default, if none was set.
   if (empty($settings->db_server) && !empty($project->settings->default_environment['db_server'])) {
@@ -66,42 +52,6 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
 
   // Now that desired servers have been determined, save to their respective nodes.
   $site->db_server = $settings->db_server;
-  $site->platform_node->web_server = $settings->web_server;
-  
-  
-  // Determine Paths
-  $platform_node = &$site->platform_node;
-  
-  // If makefile is used, set git repo_path to a "build directory" using tempnam()
-  if ($project->settings->makefile_path) {
-    
-    // Get a build ID
-    $build_id = uniqid('build-');
-    
-    //  Clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT/$ENVIRONMENT_uniquerandomname
-    $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name . '/' . $build_id;
-    
-    // Set makefile property.
-    $platform_node->makefile = $platform_node->git['repo_path'] . '/' . $project->settings->makefile_path;
-    
-  }
-  // If not using makefiles, clone the git repo to /var/aegir/projects/$PROJECT/$ENVIRONMENT
-  else {
-    $platform_node->git['repo_path'] = $project->code_path . '/' . $new_environment_name;
-  }
-  
-  // Append drupal_path to repo_path if there is one. If not, repo_path is publish_path.
-  if ($project->drupal_path) {
-    $platform_node->publish_path = $platform_node->git['repo_path'] . '/' . $project->drupal_path;
-  }
-  else {
-    $platform_node->publish_path = $platform_node->git['repo_path'];
-  }
-  
-  
-  // Specify GIT Url for hosting_git.module
-  $site->platform_node->git['repo_url'] = $project->git_url;
-  $site->platform_node->git['git_ref'] = $new_environment_branch;
   
   // Save the site node, along with the platform.
   // This is possible thanks to the patch in https://www.drupal.org/node/2824731
@@ -164,7 +114,7 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   }
 
   // Get platform verify task
-  $tasks = hosting_get_tasks('rid', $site->nid);
+  $tasks = hosting_get_tasks('rid', $site->platform_nodoe->nid);
   $environment->last_task = current($tasks)->nid;
 
   db_insert('hosting_devshop_project_environment')
