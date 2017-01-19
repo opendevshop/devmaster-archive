@@ -380,10 +380,14 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
     // Reload the node again to ensure it's been verified
     $platform_node = node_load($platform_node->nid, NULL, TRUE);
     if ($platform_node->verified) {
+  
       drush_log(dt('Platform verified successfully! Migrating site...'), 'devshop_log');
-      $backend_data = provision_backend_invoke('@hostmaster', 'hosting-task', array($task->ref->hosting_name, 'migrate', $platform_node->nid), array(
-        'profile' => $task->ref->profile_name,
-        'strict' => FALSE,
+      $backend_data = provision_backend_invoke('@hostmaster', 'hosting-task', array(
+        $task->ref->hosting_name,
+        'migrate',
+        "target_platform={$platform_node->nid}",
+        "new_uri={$task->ref->title}",
+        "new_db_server={$task->ref->db_server}",
       ));
 
       $site_node = node_load($task->ref->nid);
@@ -393,6 +397,9 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
           '!site' => l($site_node->title, "node/{$site_node->nid}"),
           '!platform' => l($platform_node->title, "node/{$site_node->nid}"),
         )), 'devshop_log');
+        
+        // Add a task to delete the old platform. Don't block the deploy task.
+        hosting_add_task($old_platform->nid, 'delete');
       }
       else {
         $migrate_task_nid = key($site_node->environment->tasks['migrate']);
