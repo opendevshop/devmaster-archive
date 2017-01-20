@@ -218,6 +218,10 @@ function devshop_projects_create_wizard_finish(&$form_state) {
   // Set to not verify and to publish.
   $project_node->no_verify = TRUE;
   $project_node->status = 1;
+  
+  // Save project state to ENABLED.
+  $project_node->state = DEVSHOP_PROJECT_STATE_ENABLED;
+  
   node_save($project_node);
 
   ctools_object_cache_clear('project', 'devshop_project');

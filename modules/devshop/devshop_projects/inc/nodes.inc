@@ -175,6 +175,7 @@ function devshop_projects_node_insert($node) {
   $info->drupal_path = hosting_path_normalize($node->project->drupal_path);
   $info->base_url = $node->project->base_url;
   $info->install_profile = $node->project->install_profile;
+  $info->state = $node->project->state;
 
   // Save serialized data, minus environments
   $info->settings = serialize($node->project->settings);
@@ -264,6 +265,9 @@ function devshop_projects_node_update($node) {
   $info->drupal_path = hosting_path_normalize($project->drupal_path);
   $info->base_url = $project->base_url;
   $info->install_profile = $project->install_profile? $project->install_profile: $project->settings->default_environment['install_profile'];
+  
+  // Save state: if node is not published, set to DISABLED. Otherwise use the specified state.
+  $info->state = $node->status == NODE_NOT_PUBLISHED? DEVSHOP_PROJECT_STATE_DISABLED: $project->state;
 
   // Save serialized data, minus environments
   $info->settings = serialize($project->settings);

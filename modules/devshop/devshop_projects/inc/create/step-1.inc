@@ -222,6 +222,9 @@ function devshop_project_create_step_git_submit(&$from, &$form_state) {
 
     // Attach to node
     $node->project = $project;
+    
+    // Save project state to INCOMPLETE.
+    $node->state = DEVSHOP_PROJECT_STATE_INCOMPLETE;
 
     // Save project node, triggering verification.
     if ($node = node_submit($node)) {
