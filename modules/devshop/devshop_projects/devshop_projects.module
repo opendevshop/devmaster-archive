@@ -5,6 +5,26 @@
  * Provides Node Type, UI, and tools for DevShop Projects.
  */
 
+/**
+ * The project has been unpublished.
+ */
+define('DEVSHOP_PROJECT_STATE_DISABLED', -1);
+
+/**
+ * The project creation wizard was started but not finished.
+ */
+define('DEVSHOP_PROJECT_STATE_INCOMPLETE', 0);
+
+/**
+ * The project is active.
+ */
+define('DEVSHOP_PROJECT_STATE_ENABLED', 1);
+
+/**
+ * The project has been deleted.
+ */
+define('DEVSHOP_PROJECT_STATE_DELETED', 2);
+
 include_once('projects.inc');
 include_once('inc/add-environment.inc');
 include_once('inc/drush.inc');

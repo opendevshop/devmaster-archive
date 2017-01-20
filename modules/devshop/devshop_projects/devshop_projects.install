@@ -62,6 +62,12 @@ function devshop_projects_schema() {
         'size' => 'big',
         'description' => 'A serialized array of settings for this project.',
       ),
+      'state' => array(
+        'description' => 'Integer indicating the state of the project.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('nid'),
   );
@@ -452,4 +458,53 @@ function devshop_projects_update_7010 () {
     'unsigned' => TRUE,
     'description' => 'The node ID of the first platform this environment used.',
   ));
+}
+
+/**
+ * Add the "state" column to the devshop projects table.
+ */
+function devshop_projects_update_7011 () {
+  db_add_field('hosting_devshop_project', 'state', array(
+    'description' => 'Integer indicating the state of the project.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+}
+
+/**
+ * Populate existing projects with the appropriate state.
+ */
+function devshop_projects_update_7012 () {
+  
+  // Load all projects.
+  $nodes = node_load_multiple(array(), array(
+    'type' => 'project',
+  ));
+  
+  foreach ($nodes as $node) {
+    // If node has a delete task set it as deleted.
+    if  (isset($node->project->tasks['delete'])) {
+      $node->project->state = DEVSHOP_PROJECT_STATE_DELETED;
+    }
+    // If node doesn't have a delete task but status is still not published, it's probably incomplete.
+    elseif ($node->status == NODE_NOT_PUBLISHED) {
+      $node->project->state = DEVSHOP_PROJECT_STATE_INCOMPLETE;
+    }
+    // If node is still published it is enabled.
+    elseif ($node->status == NODE_PUBLISHED) {
+      $node->project->state = DEVSHOP_PROJECT_STATE_ENABLED;
+    }
+    // Any other condition (like project node is unpublished, use DISABLED.
+    else {
+      $node->project->state = DEVSHOP_PROJECT_STATE_DISABLED;
+    }
+    
+    db_update('hosting_devshop_project')
+      ->fields(array('state' => $node->project->state))
+      ->condition('nid', $node->nid)
+      ->execute();
+    
+    drupal_set_message("Project $node->title set to state " . $node->project->state);
+  }
 }
