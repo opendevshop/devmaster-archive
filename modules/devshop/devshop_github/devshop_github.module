@@ -604,9 +604,8 @@ function devshop_github_webhook($project_node) {
               $params = new stdClass();
               $params->ref = $sha;
 
-              // Just in case the URL field is not populated, generate the domain from domain name pattern.
-              $params->environment = empty($environment->url)?
-                $environment->url:
+              // In GitHub's API, "environment" is just a small string it displays on the pull request:
+              $params->environment = $environment_name;
                 devshop_environment_url($project, $environment_name)
               ;
               $params->required_contexts = array();
