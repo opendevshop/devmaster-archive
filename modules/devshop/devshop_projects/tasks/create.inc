@@ -77,7 +77,6 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
 
     $environment = new stdClass();
     $environment->name = $new_environment_name;
-    $environment->platform = $site->platform_node->nid;
     $environment->site = $site->nid;
 
     // Copy settings from source environment.
@@ -101,7 +100,6 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
     // Next, add the environment record.
     $environment = new stdClass();
     $environment->name = $new_environment_name;
-    $environment->platform = $site->platform_node->nid;
     $environment->site = $site->nid;
 
     // Use settings passed in to this function.
@@ -122,7 +120,6 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
       'project_nid' => $project->nid,
       'name' => $environment->name,
       'site' => $environment->site,
-      'platform' => $environment->platform,
       'settings' => serialize($environment->settings),
       'last_task' => $environment->last_task,
     ))
