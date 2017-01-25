@@ -294,7 +294,7 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
   if ($task->ref->type == 'platform' && !empty($task->ref->project)) {
     db_delete('hosting_devshop_project_environment')
       ->condition('project_nid', $task->ref->project->nid)
-      ->condition('platform', $task->ref->platform)
+      ->condition('name', $task->ref->environment->name)
       ->execute();
 
     // If drupal root is not repo root, delete folder at code_path.
