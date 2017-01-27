@@ -81,6 +81,7 @@ CLI;
     /*  */
   
       // If the chosen branch has an update, set a drush option that can be checked later.
+      // @TODO: Also trigger a new build if branch is changed.
       if (strpos($git_fetch_output, "origin/{$git_ref}") !== FALSE) {
         drush_log(dt('Updates to !branch detected. New Build is required.', array(
           '!branch' => $git_ref,
