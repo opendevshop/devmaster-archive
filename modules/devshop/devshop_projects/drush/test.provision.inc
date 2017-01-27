@@ -22,7 +22,6 @@ function drush_devshop_provision_provision_test() {
 
   $project_name = d()->project;
   $project = (object) d("@project_{$project_name}")->project;
-  $environment = (object) $project->environments[d()->environment];
 
   drush_log(dt('Provision DevShop Run Tests started...'), 'status');
 
@@ -96,8 +95,11 @@ TXT;
     devshop_drush_process('composer install', $full_behat_folder_path, 'DevShop Testing');
 
     // Write custom behat.yml to temporary folder.
-    $environment_name = $environment->name;
-    $url = $environment->url;
+    $environment_name = d()->environment;
+    $url = d()->ssl_enabled?
+      'https://' . d()->uri:
+      'http://' . d()->uri
+    ;
     $alias = d()->name;
     $root = d()->root;
 
@@ -106,7 +108,7 @@ TXT;
     $uri = d()->uri;
 
     if (!empty($username)) {
-      $url = $environment->ssl_enabled?
+      $url = d()->ssl_enabled?
         "https://$username:$password@$uri":
         "http://$username:$password@$uri";
     }
