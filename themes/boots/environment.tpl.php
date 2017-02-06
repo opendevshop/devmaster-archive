@@ -24,6 +24,7 @@
 
               <h4 class="modal-title" id="infoModalLabel<?php print $environment->site ?>"><?php print t('Environment Information') ?> <small><?php print $environment->name; ?></small>
               </h4>
+              <a href="<?php print url($environment->url); ?>" target="_blank" class='btn btn-default btn-sm'><?php print t('Visit Site') ?> <i class="fa fa-external-link-square"></i> </a>
             </div>
             <div class="modal-body">
               <h4>SSH Access</h4>
