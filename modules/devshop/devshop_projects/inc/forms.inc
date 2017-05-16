@@ -48,8 +48,8 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   );
   $form['project']['codebase']['code_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('Code path'),
-    '#description' => t('The absolute path on the filesystem that will be used to create the platform in the directory specified above.'),
+    '#title' => t('Base path'),
+    '#description' => t('All environments in this project will be installed inside this path. <em>Changing this will only affect new environments. Existing environments will not change.</em>'),
     '#required' => TRUE,
     '#size' => 40,
     '#default_value' => $project->code_path,
@@ -90,7 +90,7 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   $form['project']['codebase']['base_url'] = array(
     '#type' => 'textfield',
     '#title' => t('Base URL'),
-    '#description' => t('The base domain name for this project. All environments will get a subdomain under this one.  <em>This will only affect new environments.</em>'),
+    '#description' => t('The base domain name for this project. All environments will get a subdomain under this one.  <em>Changing this will only affect new environments. Existing environments will not change.</em>'),
     '#required' => TRUE,
     '#size' => 40,
     '#default_value' => $project->base_url,
@@ -399,21 +399,15 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
 function devshop_projects_validate($node, &$form, &$form_state) {
 
   // Code path and base url must be unique
-  if (db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND code_path = :code_path;', array(':status' => 1, ':code_path' => $form_state['values']['project']['code_path']))->fetchField()) {
-    form_set_error('code_path', t('Another project already has this code path.  Code path must be unique.'));
+  if (db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND code_path = :code_path AND n.nid != :nid;', array(':status' => 1, ':code_path' => $form_state['values']['project']['code_path'], ':nid' => $form_state['values']['nid']))->fetchField()) {
+    form_set_error('code_path', t('The code path %path is in use by another project. Please enter a different path.', array(
+      '%path' => $form_state['values']['project']['code_path'],
+    )));
   }
-  if (db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND base_url = :base_url;', array(':status' => 1, ':base_url' => $form_state['values']['project']['base_url']))->fetchField()) {
-    form_set_error('base_url', t('Another project already has this base url.  Base URL must be unique.'));
-  }
-
-  // If custom code paths are not allowed, set the value here using the project name.
-  if (!variable_get('devshop_projects_allow_custom_code_path', FALSE)) {
-    form_set_value($form['code_path'], variable_get('devshop_project_base_path', '/var/aegir/projects') . '/' . $project_name, $form_state);
-  }
-
-  // If custom base URLs are not allowed, set the value here using the project name.
-  if (!variable_get('devshop_projects_allow_custom_base_url', FALSE)) {
-    form_set_value($form['base_url'], devshop_projects_url($project_name), $form_state);
+  if (db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND base_url = :base_url AND n.nid != :nid;;', array(':status' => 1, ':base_url' => $form_state['values']['project']['base_url'], ':nid' => $form_state['values']['nid']))->fetchField()) {
+    form_set_error('base_url', t('The base URL %url is in use by another project.  Please enter a different base URL.', array(
+      '%url' => $form_state['values']['project']['base_url'],
+    )));
   }
 }
 
@@ -1203,8 +1197,43 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
     form_set_value($form['title'], devshop_environment_url($project, $element['#value']), $form_state);
 
     // Attach a new platform node.
-    $platform_node = devshop_prepare_platform_node($project, $element['#value'], $form_state['values']['git_ref'], $form_state['values']['web_server']);
-    
+    $platform_node = new stdClass();
+    $platform_node->title = $project->name . '_' . $element['#value'];
+
+    // Specify GIT Url for hosting_git.module
+    $platform_node->git['repo_url'] = $project->git_url;
+    $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
+    $platform_node->git['repo_docroot'] = $project->drupal_path;
+    $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
+
+    // Enable git pull queue for this platform if chosen.
+    if ($project->settings->deploy['method'] == 'queue') {
+      $platform_node->git['pull_method'] = HOSTING_GIT_PULL_QUEUE;
+    }
+    // For devshop "webhook" and "manual" methods, disable git pull for now.
+    // @TODO: Remove devshop "code deploy" task in exchange for hosting_git_pull module.
+    else {
+      $platform_node->git['pull_method'] = HOSTING_GIT_PULL_DISABLED;
+    }
+
+
+    // Determine which web server to use.
+    // If no web server was set and project has a default, make sure we set it.
+    if (empty($form_state['values']['web_server']) && !empty($project->settings->default_environment['web_server'])) {
+      $platform_node->web_server = $project->settings->default_environment['web_server'];
+    }
+    else {
+      $platform_node->web_server = $form_state['values']['web_server'];
+    }
+
+    // If drupal path, append to code path/environment name
+    if ($project->drupal_path) {
+      $platform_node->publish_path = $project->code_path . '/' . $element['#value'] . '/' . $project->drupal_path;
+    }
+    else {
+      $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
+    }
+
     // Set value in form_state.
     form_set_value($form['platform_node'], $platform_node, $form_state);
     form_set_value($form['profile'], 0, $form_state);
