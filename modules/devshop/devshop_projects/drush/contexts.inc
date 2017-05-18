@@ -48,10 +48,10 @@ function devshop_projects_hosting_site_context_options(&$task) {
 }
 
 /**
- * Implements hook_hosting_site_context_options().
+ * Implements hook_hosting_platform_context_options().
  *
  * Runs on verify task. Passes data to the drush alias.
- * Save environment name, project name, and git ref to site aliases.
+ * Save environment name, project name, git ref, and drupal_path to site aliases.
  */
 function devshop_projects_hosting_platform_context_options(&$task) {
 
@@ -59,6 +59,7 @@ function devshop_projects_hosting_platform_context_options(&$task) {
     $task->context_options['environment'] = $task->ref->environment->name;
     $task->context_options['project'] = $task->ref->project->name;
     $task->context_options['git_ref'] = $task->ref->environment->git_ref;
+    $task->context_options['drupal_path'] = $task->ref->project->drupal_path;
   }
 }
 

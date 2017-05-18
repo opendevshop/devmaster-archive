@@ -513,6 +513,18 @@ function drush_devshop_provision_pre_provision_verify() {
 }
 
 /**
+ * Implementatoin of drush_HOOK_pre_provision_git_clone()
+ *
+ * This will rewrite the git clone path to remove the drupal_path.
+ */
+function drush_devshop_provision_pre_provision_git_clone() {
+  if (d()->type === 'platform' && !empty(d()->drupal_path)) {
+    $drupal_path = '/' . d()->drupal_path;
+    d()->root = str_replace($drupal_path, '', d()->root);
+  }
+}
+
+/**
  * Implementation of drush_hook_post_provision_install()
  *
  * This function handles all of the alternative environment install methods.
