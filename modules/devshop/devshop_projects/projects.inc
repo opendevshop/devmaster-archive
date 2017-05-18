@@ -149,7 +149,6 @@ function devshop_project_load($node) {
           db.nid as db_server_nid,
           s.db_name,
           s.profile as install_profile,
-          s.platform as platform,
           pn.title as project_name,
           sn.created as created,
           s.vid,
