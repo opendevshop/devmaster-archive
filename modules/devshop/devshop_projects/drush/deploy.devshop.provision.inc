@@ -45,7 +45,7 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
   $project = (object) d("@project_{$project_name}")->project;
   $environment = (object) $project->environments[d()->environment];
   $desired_ref_type = $project->settings['git']['refs'][$git_ref];
-  
+
     drush_log('[Current Working Directory]' . d()->platform->repo_path, 'devshop_log');
 
     // Stash any changes? Not sure if we should do this anymore...
@@ -56,12 +56,13 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
 
     // Checkout the chosen ref
     $git_checkout_output = devshop_drush_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
+    $git_checkout_output_lines = explode("\n", $git_checkout_output);
   
     // If platform does not have a makefile, a straight git pull is possible.
     if (empty(d()->platform->makefile)) {
       // Run Git Pull
       if ($desired_ref_type == 'branch') {
-    
+        
         $git_pull_output = devshop_drush_process("git pull", d()->platform->repo_path, dt('DevShop Deploy'));
         devshop_drush_process("git submodule update --init --recursive --force ", d()->platform->repo_path, dt('DevShop Deploy'));
         devshop_drush_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
@@ -74,12 +75,12 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
       // Mock for testing...
       /*
       $git_fetch_output = <<<CLI
-Fetching origin
-From https://github.com/terra-ops/example-drush-make
+  Fetching origin
+  From https://github.com/terra-ops/example-drush-make
    4c57911..4391f85  master     -> origin/master
-CLI;
+  CLI;
     /*  */
-  
+      
       // If the chosen branch has an update, set a drush option that can be checked later.
       // @TODO: Also trigger a new build if branch is changed.
       if (strpos($git_fetch_output, "origin/{$git_ref}") !== FALSE) {
@@ -87,7 +88,7 @@ CLI;
           '!branch' => $git_ref,
         )), 'devshop_log');
         drush_log(dt('Skipping post-deploy hooks.'), 'devshop_log');
-    
+        
         // Set option for hosting_git.drush.inc to detect in a post verify hook.
         drush_set_option('new_build_required', TRUE);
       }
@@ -126,7 +127,7 @@ function drush_devshop_provision_post_provision_devshop_deploy($git_ref = '') {
 
   // Built in Hooks
   if ($composer) {
-    if (file_exists($environment->repo_path . '/composer.json')) {
+    if (file_exists(d()->platform->repo_path . '/composer.json')) {
       $commands[] = "composer install";
     }
     elseif (file_exists($environment->root . '/composer.json')) {
@@ -167,7 +168,7 @@ function drush_devshop_provision_post_provision_devshop_deploy($git_ref = '') {
   }
 
   foreach ($commands as $command) {
-    devshop_drush_process($command, $environment->repo_path, 'DevShop Deploy Hook');
+    devshop_drush_process($command, d()->platform->repo_path, 'DevShop Deploy Hook');
   }
 }
 
