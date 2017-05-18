@@ -217,7 +217,7 @@ function devshop_projects_node_insert($node) {
       $info->project_nid = $node->nid;
       $info->name = $name;
       $info->site = $environment->site;
-      $info->platform = $environment->platform;
+      $info->platform_first = $environment->platform;
 
       // Remove primary settings from settings array before saving.
       unset($environment->settings['git_ref']);
