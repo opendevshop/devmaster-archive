@@ -39,7 +39,7 @@ SELECT
   LEFT JOIN {node} n ON e.project_nid = n.nid
   LEFT JOIN {hosting_site} s ON e.site = s.nid
   WHERE site  = :site
-    OR platform = :platform
+    OR s.platform = :platform
     OR project_nid = :project
 ", array(
           ':site' => $nid,
