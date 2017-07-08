@@ -52,7 +52,7 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
 
   // Now that desired servers have been determined, save to their respective nodes.
   $site->db_server = $settings->db_server;
-  
+
   // Save the site node, along with the platform.
   // This is possible thanks to the patch in https://www.drupal.org/node/2824731
   if ($site = node_submit($site)) {
@@ -112,7 +112,7 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   }
 
   // Get platform verify task
-  $tasks = hosting_get_tasks('rid', $site->platform_nodoe->nid);
+  $tasks = hosting_get_tasks('rid', $site->platform_node->nid);
   $environment->last_task = current($tasks)->nid;
 
   db_insert('hosting_devshop_project_environment')
