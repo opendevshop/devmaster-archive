@@ -308,6 +308,10 @@ function devshop_projects_delete($node) {
 
 /**
  * @param $environment
+ *
+ * NO LONGER USED!
+ *
+ * @deprecated
  */
 function devshop_environment_save(stdClass &$environment) {
   $environment->settings = (array) $environment->settings;
