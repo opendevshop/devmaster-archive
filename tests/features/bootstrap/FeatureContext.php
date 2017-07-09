@@ -1,13 +1,9 @@
 <?php
 
-use Drupal\DrupalExtension\Context\DrushContext;
 use Behat\Behat\Context\SnippetAcceptingContext;
-use Behat\Gherkin\Node\PyStringNode;
-use Behat\Gherkin\Node\TableNode;
-use Symfony\Component\Process\Process;
-use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
+use Drupal\DrupalExtension\Context\DrushContext;
 
 /**
  * Defines application features from the specific context.
@@ -163,5 +159,16 @@ class FeatureContext extends DrushContext implements SnippetAcceptingContext {
   {
     print "Deleting /var/aegir/projects/drpl8";
     print shell_exec('rm -rf /var/aegir/projects/drpl8');
+  }
+
+  /**
+   * Remove any created users.
+   *
+   * @todo: figure out why deleting users is throwing an sql error after tests pass.
+   *
+   * @AfterScenario
+   */
+  public function cleanUsers() {
+
   }
 }
