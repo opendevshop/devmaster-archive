@@ -5,13 +5,17 @@ Feature: Create a project
   I need to create a new project
 
   Scenario Outline: Create a new project
+    Given users:
+      | name     | mail              | status | roles          |
+      | devshop  | no@getdevshop.com | 1      | administrator  |
+
     Examples:
     |name    |url                                                  |docroot|makefile   |
     |drpl8   |http://github.com/opendevshop/drupal8.git            |       |           |
     |made    |https://github.com/opendevshop/example-drush-make.git|built  |drupal.make|
     |docroot |https://github.com/opendevshop/drupal_docroot.git    |docroot|           |
 
-    Given I am logged in as "admin"
+    Given I am logged in as "devshop"
     And I am on the homepage
     When I click "Projects"
     And I click "Start a new Project"
