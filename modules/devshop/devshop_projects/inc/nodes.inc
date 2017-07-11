@@ -281,10 +281,21 @@ function devshop_projects_node_update($node) {
 function devshop_projects_node_delete($node) {
 
   // When a platform or site node is FULLY deleted, remove the environment record.
-  // This should never happen, site and platform nodes are never fully deleted.
-  if (($node->type == 'site' || $node->type == 'platform') && !empty($node->project)) {
+  // This doesn't normally happen, because site and platform nodes are not supposed to be fully deleted.
+  // However, aegir veterans know they do sometimes have to manually delete a node.
+  if ($node->type == 'site' && !empty($node->project)) {
+
+    // If a site is deleted, delete the row with 'site' column match.
     db_delete('hosting_devshop_project_environment')
-      ->condition($node->type, $node->nid)
+      ->condition('site', $node->nid)
+      ->execute();
+  }
+
+  // If a platform is deleted, we delete the environment with the correct project and name.
+  elseif ($node->type == 'platform' && !empty($node->project)) {
+    db_delete('hosting_devshop_project_environment')
+      ->condition('project_nid', $node->project->nid)
+      ->condition('name', $node->environment->name)
       ->execute();
   }
 }
