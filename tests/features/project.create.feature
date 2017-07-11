@@ -11,7 +11,7 @@ Feature: Create a project
     |made    |https://github.com/opendevshop/example-drush-make.git|built  |drupal.make|
     |docroot |https://github.com/opendevshop/drupal_docroot.git    |docroot|           |
 
-    Given I am logged in as a user with the "administrator" role
+    Given I am logged in as "admin"
     And I am on the homepage
     When I click "Projects"
     And I click "Start a new Project"
