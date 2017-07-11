@@ -4,21 +4,26 @@ Feature: Create a project
   As a project admin
   I need to create a new project
 
-  Scenario: Create a new drupal 8 project
+  Scenario Outline: Create a new project
+    Examples:
+    |name    |url                                                  |docroot|makefile   |
+    |drpl8   |http://github.com/opendevshop/drupal_docroot.git     |docroot|           |
+    |made    |https://github.com/opendevshop/example-drush-make.git|built  |drupal.make|
+    |docroot |https://github.com/opendevshop/drupal_docroot.git    |docroot|           |
 
     Given I am logged in as a user with the "administrator" role
     And I am on the homepage
     When I click "Projects"
     And I click "Start a new Project"
     Then I should see "Step 1"
-    Then I fill in "drpl8" for "Project Code Name"
-    And I fill in "http://github.com/opendevshop/drupal_docroot.git" for "Git URL"
+    Then I fill in "<name>" for "Project Code Name"
+    And I fill in "<url>" for "Git URL"
     When I press "Next"
 
     # Step 2
-    Then I should see "drpl8"
-    And I should see "http://github.com/opendevshop/drupal_docroot.git"
-    When I fill in "docroot" for "Path to Drupal"
+    Then I should see "<name>"
+    And I should see "<url>"
+    When I fill in "<docroot>" for "Path to Drupal"
 
     # Step 3
     When I press "Next"
@@ -57,7 +62,7 @@ Feature: Create a project
     And I should see "master"
     And I reload the page
 #    When I click "Process Failed"
-    Then I should see "8."
+#    Then I should see "8."
     Then I should not see "Platform verification failed"
     When I select "standard" from "install_profile"
 
@@ -76,7 +81,7 @@ Feature: Create a project
     And I should see the link "live"
 
 #    Then I break
-    And I should see the link "http://drpl8.dev.devshop.local.computer"
+    And I should see the link "http://<name>.dev.devshop.local.computer"
     And I should see the link "Aegir Site"
 
     When I run drush "hosting-tasks --force --fork=0 --strict=0"
@@ -86,7 +91,7 @@ Feature: Create a project
     And I reload the page
     Then I should see the link "dev"
     Then I should see the link "live"
-#    Given I go to "http://dev.drpl8.devshop.travis"
+#    Given I go to "http://dev.<name>.devshop.travis"
 #    When I click "Visit Environment"
 
 # @TODO: Fix our site installation.
@@ -101,7 +106,7 @@ Feature: Create a project
     #@TODO: Check lots of settings
 
     Then I press "Create New Environment"
-    Then I should see "Environment testenv created in project drpl8."
+    Then I should see "Environment testenv created in project <name>."
 
     When I run drush "hosting-tasks --force --fork=0 --strict=0"
     Then print last drush output
@@ -115,12 +120,12 @@ Feature: Create a project
     And I should see "Environment Settings"
 
     When I click "Visit Site"
-    Then I should see "Welcome to drpl8.testenv"
+    Then I should see "Welcome to <name>.testenv"
 
     Then I move backward one page
     When I click "Project Settings"
     Then I select "testenv" from "Primary Environment"
     And I press "Save"
 
-    Then I should see "DevShop Project drpl8 has been updated."
+    Then I should see "DevShop Project <name> has been updated."
     And I should see an ".environment-link .fa-bolt" element
