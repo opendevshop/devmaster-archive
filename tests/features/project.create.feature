@@ -7,7 +7,7 @@ Feature: Create a project
   Scenario Outline: Create a new project
     Examples:
     |name    |url                                                  |docroot|makefile   |
-    |drpl8   |http://github.com/opendevshop/drupal_docroot.git     |docroot|           |
+    |drpl8   |http://github.com/opendevshop/drupal8.git            |       |           |
     |made    |https://github.com/opendevshop/example-drush-make.git|built  |drupal.make|
     |docroot |https://github.com/opendevshop/drupal_docroot.git    |docroot|           |
 
