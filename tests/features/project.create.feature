@@ -34,7 +34,7 @@ Feature: Create a project
     Then I should see "Please wait while we connect to your repository and determine any branches."
 #    And I should see "Path to Drupal: docroot"
 
-    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    When I run drush "hosting-tasks -v --force --fork=0 --strict=0"
     Then print last drush output
     And I reload the page
     And I reload the page
@@ -55,7 +55,7 @@ Feature: Create a project
     And I should see "master"
     And I should see "master"
 
-    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    When I run drush "hosting-tasks -v --force --fork=0 --strict=0"
     Then print last drush output
     And I reload the page
 
@@ -88,7 +88,7 @@ Feature: Create a project
     And I should see the link "http://<name>.dev.devshop.local.computer"
     And I should see the link "Aegir Site"
 
-    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    When I run drush "hosting-tasks -v --force --fork=0 --strict=0"
     Then print last drush output
     Then drush output should not contain "This task is already running, use --force"
 
