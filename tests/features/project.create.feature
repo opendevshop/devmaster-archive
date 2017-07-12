@@ -95,11 +95,6 @@ Feature: Create a project
     And I reload the page
     Then I should see the link "dev"
     Then I should see the link "live"
-#    Given I go to "http://dev.<name>.devshop.travis"
-#    When I click "Visit Environment"
-
-# @TODO: Fix our site installation.
-#    Then I should see "No front page content has been created yet."
 
     When I click "Create New Environment"
     And I fill in "testenv" for "Environment Name"
