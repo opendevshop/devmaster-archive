@@ -55,7 +55,7 @@ Feature: Create a project
     And I should see "master"
     And I should see "master"
 
-    When I run drush "hosting-tasks -v --force --fork=0 --strict=0"
+    When I run drush "hosting-tasks -v --debug --force --fork=0 --strict=0"
     Then print last drush output
     And I reload the page
 
