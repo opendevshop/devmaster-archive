@@ -1249,6 +1249,7 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
  */
 function devshop_prepare_platform_node($project, $environment_name, $git_ref, $web_server) {
   $platform_node = new stdClass();
+  $platform_node->type = 'platform';
   $platform_node->title = $project->name . '_' . $environment_name;
   
   // Specify GIT Url for hosting_git.module
