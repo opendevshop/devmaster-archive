@@ -41,6 +41,22 @@ function drush_devshop_provision_pre_provision_devshop_deploy($git_ref = ''){
  */
 function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
 {
+  // If the chosen branch has an update, set a drush option that can be checked later.
+  // Then, hosting_git.drush.inc reacts to the import task and creates the site migration task.
+  //
+  // Example output:
+  //    4c57911..4391f85  master     -> origin/master
+  if (d()->platform->makefile) {
+    drush_log(dt('Updates to !branch detected. New Build is required.', array(
+      '!branch' => $git_ref,
+    )), 'devshop_log');
+    
+    // Set option for hosting_git.drush.inc to detect in a post verify hook.
+    drush_set_option('new_build_required', TRUE, 'site');
+    
+    return;
+  }
+  
   $project_name = d()->project;
   $project = (object) d("@project_{$project_name}")->project;
   $environment = (object) $project->environments[d()->environment];
@@ -66,29 +82,6 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
     }
 
     devshop_drush_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
-  
-    // Mock for testing...
-    /*
-    $git_fetch_output = <<<CLI
-Fetching origin
-From https://github.com/terra-ops/example-drush-make
-   4c57911..4391f85  master     -> origin/master
-CLI;
-  /*  */
-    
-    // If the chosen branch has an update, set a drush option that can be checked later.
-    // Then, hosting_git.drush.inc reacts to the import task and creates the site migration task.
-    //
-    // Example output:
-    //    4c57911..4391f85  master     -> origin/master
-    if (d()->platform->makefile && strpos($git_fetch_output, "origin/{$git_ref}") !== FALSE) {
-      drush_log(dt('Updates to !branch detected. New Build is required.', array(
-        '!branch' => $git_ref,
-      )), 'devshop_log');
-  
-      // Set option for hosting_git.drush.inc to detect in a post verify hook.
-      drush_set_option('new_build_required', TRUE, 'site');
-    }
 }
 
 /**
