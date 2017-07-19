@@ -55,6 +55,7 @@ Feature: Create a project
     And I should see "master"
     And I should see "master"
 
+    Then I run drush "eval 'print_r(hosting_context_load(platform_<name>_dev))'"
     When I run drush "hosting-tasks -v --debug --force --fork=0 --strict=0"
     Then print last drush output
     And I reload the page
