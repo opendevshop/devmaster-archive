@@ -202,8 +202,8 @@
 
       <?php
       // If we detect a currently running deploy...
-      if (isset($environment->tasks['devshop-deploy'])):
-        $task = current($environment->tasks['devshop-deploy']);
+      if (isset($environment->tasks['git-checkout'])):
+        $task = current($environment->tasks['git-checkout']);
 
         if (($environment->git_ref != $task->task_args['git_ref'] || $environment->git_ref != $environment->git_ref_stored) && ($task->task_status == HOSTING_TASK_QUEUED || $task->task_status == HOSTING_TASK_PROCESSING)): ?>
         <span title="<?php print t('Deploying from @source to @target...', array('@source' => $environment->git_ref, '@target' => $task->task_args['git_ref'])); ?>">
@@ -427,7 +427,7 @@
                                 <?php if (count($git_refs)): ?>
                                     <?php foreach ($git_refs as $ref => $item): ?>
                                         <li>
-                                            <?php print str_replace('ENV_NID', $environment->site, $item); ?>
+                                            <?php print str_replace('ENV_NID', $environment->platform, $item); ?>
                                         </li>
                                     <?php endforeach; ?>
                                 <?php endif; ?>

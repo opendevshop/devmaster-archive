@@ -520,7 +520,8 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
         break;
 
       // Deploy task form
-      case 'devshop-deploy':
+      case 'git-checkout':
+      case 'git-pull':
 
         // Alter title of deploy task.
         $node = node_load($form['nid']['#value']);
@@ -1477,7 +1478,7 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
   if (
     // Environment form
     ($is_environment_form && !$project->settings->deploy['allow_environment_deploy_config']) ||
-    ($task_type == 'devshop-deploy' && !$project->settings->deploy['allow_environment_deploy_hooks_override'])
+    ($task_type == 'git-pull' && !$project->settings->deploy['allow_environment_deploy_hooks_override'])
   ) {
 
     foreach (element_children($return) as $i) {

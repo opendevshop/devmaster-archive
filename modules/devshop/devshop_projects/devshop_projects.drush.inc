@@ -91,18 +91,6 @@ function drush_devshop_projects_pre_hosting_task()
     $task->options['force'] = FALSE;
   }
 
-  // Deploy
-  if ($task->ref->type == 'site' && $task->task_type == 'devshop-deploy') {
-
-    // The git_ref is the only argument
-    $task->args['git_ref'] = $task->task_args['git_ref'];
-
-    // Just load in all of the task_args as options(they come from the task form.)
-    foreach ($task->task_args as $arg => $value) {
-      $task->options[$arg] = $value;
-    }
-  }
-
   // Run tests
   if ($task->ref->type == 'site' && $task->task_type == 'test') {
 

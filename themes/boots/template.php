@@ -43,9 +43,9 @@ function boots_preprocess_environment(&$vars) {
   // Load git refs and create links
   $vars['git_refs'] = array();
   foreach ($project->settings->git['refs'] as $ref => $type) {
-    $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
+    $href = url('hosting_confirm/ENV_NID/platform_git-checkout', array(
         'query' => array(
-            'git_ref' => $ref,
+            'checkout_git_ref' => $ref,
         )
     ));
     $icon = $type == 'tag' ? 'tag' : 'code-fork';

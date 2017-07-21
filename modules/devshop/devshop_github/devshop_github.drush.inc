@@ -9,7 +9,7 @@ require_once 'vendor/autoload.php';
 function devshop_github_hosting_task_update_status($task, $status) {
 
   // React only on certain task types and if project and environment exist.
-  $types = array('install', 'test', 'devshop-deploy');
+  $types = array('install', 'test', 'git-pull', 'git-checkout');
   if (in_array($task->task_type, $types) && isset($task->ref->project) && !empty($task->ref->project) && isset($task->ref->environment) && !empty($task->ref->environment)) {
     $project = $task->ref->project;
     $environment = $task->ref->environment;
