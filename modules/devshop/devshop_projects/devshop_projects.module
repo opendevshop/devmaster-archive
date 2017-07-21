@@ -19,7 +19,6 @@ include_once('tasks/tasks.inc');
 include_once('tasks/commit.inc');
 include_once('tasks/create.inc');
 include_once('tasks/pull.inc');
-include_once('tasks/deploy.inc');
 
 
 /**
