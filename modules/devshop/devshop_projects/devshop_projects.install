@@ -461,3 +461,12 @@ function devshop_projects_update_7008 () {
     ->execute();
 
 }
+
+/**
+ * Enable Hosting Git Checkout.
+ */
+function devshop_projects_update_7009 () {
+  module_enable(array(
+    'hosting_git_checkout',
+  ));
+}
