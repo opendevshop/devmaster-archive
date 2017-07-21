@@ -35,25 +35,6 @@ function devshop_provision_register_autoload() {
  * Provides provision commands for all devshop tasks.
  */
 function devshop_provision_drush_command() {
-  $items['provision-devshop-deploy'] = array(
-    'description' => 'Deploys a tag or branch to an environment and (optionally) run update.php, clear cache, and revert features.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'options' => array(
-      'update' => 'Run update.php after code pull.',
-      'revert' => 'Revert all features after code pull.',
-      'cache' => 'Clear all caches after code pull.',
-      'reset' => 'Runs "git reset --hard" before pulling.',
-      'force' => "Runs always update,revert and cache options, even if files don't change.",
-      'test' => 'Queue a test run after the deploy.  (Only works from Hostmaster)',
-    ),
-    'arguments' => array(
-      'git_ref' => 'The git branch or tag to deploy.',
-    ),
-    'examples' => array(
-      'drush @env.project.domain.com provision-devshop-deploy master --cache --update' => 'Triggers a git checkout & pull of branch master to the dev environment, clearing caches and running updates.',
-    ),
-    'aliases' => array('deploy'),
-  );
   $items['provision-test'] = array(
     'description' => 'Run a set of tests.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -489,14 +470,6 @@ function devshop_fqdn($host = NULL) {
 //    return $instance;
 //  }
 //}
-
-/**
- * Implementation of drush_hook_provision_pre_COMMAND()
- * Calls drush_devshop_provision_pre_provision_verify()
- */
-function drush_devshop_provision_pre_provision_deploy() {
-  drush_devshop_provision_pre_provision_verify();
-}
 
 /**
  * Implementation of drush_hook_provision_pre_COMMAND()
