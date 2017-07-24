@@ -48,7 +48,6 @@ function devshop_environment_add_form($form, $form_state, $project_node) {
 
   // Remove unwanted items
   unset($form['menu']);
-  unset($form['git']);
 
   // Generate field prefix and suffix using domain name pattern.
   // @TODO: When per-project patterns are added, look for that setting instead of the variable.
