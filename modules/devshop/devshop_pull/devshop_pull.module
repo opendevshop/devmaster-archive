@@ -2,63 +2,61 @@
 /**
  * @file devshop_pull.module
  *
- * Provides a Hosting Queue and a URL callback for remote services to ping, in
- * order to trigger a Pull Code task.
- *
- * Used to keep a dev server up to date with the commits of projects.
+ * Provides a project-wide webhook URL that passes to hosting_git's
+ * platform-specific webhook code.
  *
  */
-
-define('DEVSHOP_PULL_DISABLED', 0);
-define('DEVSHOP_PULL_QUEUE', 1);
-define('DEVSHOP_PULL_CALLBACK', 2);
-
-define('DEVSHOP_PULL_STATUS_OK', 1);
-define('DEVSHOP_PULL_STATUS_ACCESS_DENIED', 2);
-define('DEVSHOP_PULL_STATUS_INVALID_CODE', 3);
-
-// These are github's Webhook callback IPs.
-// This list grows occaisonally, update it as needed.
-define('DEVSHOP_PULL_DEFAULT_ALLOWED_IPS', "
-204.232.175.64/27
-192.30.252.0/22
-104.192.143.192/28
-104.192.143.208/28
-");
 
 // The base URL to use for the Post Commit callback.
 define('DEVSHOP_PULL_CALLBACK_URL', 'webhook');
 
 /**
- * Implements hook_permission().
- */
-function devshop_pull_permission() {
-  return array(
-    'configure devshop pull' => array(
-      'title' => t('configure devshop pull'),
-      'description' => t('Configure DevShop Pull module.'),
-    ),
-  );
-}
-
-/**
  * Implements hook_menu().
  */
 function devshop_pull_menu() {
-  $items['admin/devshop/pull'] = array(
-    'title' => 'Git Webhooks',
-    'description' => 'Configure Git Webhooks',
-    'page callback' => 'devshop_pull_settings_page',
-    'access arguments' => array('administer hosting settings'),
-    'file' => 'devshop_pull.settings.inc',
-    'tab_parent' => 'admin/devshop',
-    'type' => MENU_LOCAL_TASK,
-  );
   $items[DEVSHOP_PULL_CALLBACK_URL] = array(
     'page callback' => 'devshop_pull_callback',
     'access callback' => TRUE,
-    'file' => 'devshop_pull.inc',
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * URL callback that is invoked by git to create a code pull task.
+ */
+function devshop_pull_callback($project_hosting_context, $hash) {
+  
+  module_load_include('webhook.inc', 'hosting_git_pull');
+  
+  // Load the project node & list of allowed IPs
+  $project_node = hosting_context_load($project_hosting_context);
+  $project = $project_node->project;
+  
+  // Make sure the security code is valid
+  if (_hosting_git_pull_webhook_hash_create($project_node) != $hash) {
+    $message = "Security code $hash is not valid!!!!";
+    watchdog('hosting_git_pull', $message, array(), WATCHDOG_WARNING);
+    header('HTTP/1.0 403 Forbidden');
+    print $message;
+    exit;
+  }
+  
+  // Load the code from hosting_git_pull and trigger the individual platforms' webhook URL.
+  foreach ($project->environments as $name => $environment) {
+    $platform = node_load($environment->platform);
+    $hash = _hosting_git_pull_webhook_hash_create($platform);
+    hosting_git_pull_callback($platform->hosting_name, $hash);
+  }
+}
+
+/**
+ * Create the full URL that is displayed in the project node view
+ * and given to the GitHub WebHook to invoke a pull after a commit.
+ */
+function _devshop_pull_callback_url($node) {
+  return url(DEVSHOP_PULL_CALLBACK_URL
+    . '/' . $node->hosting_name
+    . '/' . _hosting_git_pull_webhook_hash_create($node),
+    array('absolute' => TRUE));
 }
