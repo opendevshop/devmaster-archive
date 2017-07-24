@@ -186,56 +186,20 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
     '#group' => 'project_settings',
   );
 
-  $form['project']['settings']['deploy']['method'] = array(
-    '#title' => 'Deploy Code Method',
-    '#type' => 'radios',
-    '#description' => t('Choose the method used to deploy code to the server.'),
-    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : 'webhook',
+  $form['project']['settings']['deploy']['allow_environment_pull_method_config'] = array(
+    '#title' => t('Allow environments to configure Git Pull Method'),
+    '#type' => 'checkbox',
+    '#description' => t('If checked, each environment can choose a different git pull method individually.'),
+    '#default_value' => $project->settings->deploy['allow_environment_pull_method_config'],
   );
-
-  // Commit Webhook
-  $form['project']['settings']['deploy']['method']['#options']['webhook'] = t('Immediate Deployment');
-  $form['project']['settings']['deploy']['method']['#options']['webhook'] .= '<div class="description">' . t('Recommended. Deploy code as it is delivered to your repository.') . ' <em>' . t('Requires setting up a webhook with your git repository host.') . '</em>' . '</div>';
-
-  // Queue
-  $queues = hosting_get_queues();
-  if ($queues['pull']['enabled']) {
-    $form['project']['settings']['deploy']['method']['#options']['queue'] = t('Queued Deployment');
-
-    $t = array();
-    $t['@freq'] = format_interval($queues['pull']['frequency'], 1);
-
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= '<div class="description">';
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= t('Git pull code every @freq. Use only if repository webhooks are not available.', $t);
-
-
-    if (user_access('administer hosting queues')) {
-      $form['project']['settings']['deploy']['method']['#options']['queue'] .= ' ' . l(t("Pull Queue configured to run every @freq.", $t), 'admin/hosting/queues');
-    }
-    else {
-      $form['project']['settings']['deploy']['method']['#options']['queue'] .= ' ' . t("Pull Queue configured to run every @freq.", $t);
-    }
-
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= '</div>';
-
-  }
-
-  // Manual Pull
-  $form['project']['settings']['deploy']['method']['#options']['manual'] = t('Manual Deployment');
-  $form['project']['settings']['deploy']['method']['#options']['manual'] .= '<div class="description">' . t('Deploy code to servers manually via devshop or drush.');
-
-  $form['project']['settings']['deploy']['method']['#options']['manual'] .= ' <em>' . t('Not recommended. All environments must be manually updated.') . '</em>' . '</div>';
-
-  // Add link to hosting queues admin if the user can access them.
-  if (!$queues['deploy']['enabled'] && user_access('administer hosting queues')) {
-    $form['project']['settings']['deploy']['queue_admin'] = array(
-      '#value' => t('The !link is disabled. Enable it to allow projects to pull code in the queue.', array(
-        '!link' => l(t('Pull Queue'), 'admin/hosting/queues'),
-      )),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    );
-  }
+  
+  $options = hosting_git_pull_method_options();
+  $form['project']['settings']['deploy']['method'] = array(
+    '#title' => t('Default Git Pull Method'),
+    '#type' => 'radios',
+    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : HOSTING_GIT_PULL_DISABLED,
+    '#options' => $options,
+  );
 
   // Load deploy hooks form element.
   $form['project']['settings']['deploy']['default_hooks'] = devshop_environment_deploy_hooks_form($project);
@@ -655,7 +619,6 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
     if (isset($platform_node->project)) {
       // Hide makefile
       $form['frommakefile']['#access'] = FALSE;
-      $form['git']['pull_url']['#access'] = FALSE;
     }
 
     // If switching webservers...
@@ -1177,7 +1140,30 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
   // @TODO: Patch Aegir so we don't have to load all of these platform options.
   $form['platform']['#access'] = FALSE;
   $form['profile']['#access'] = FALSE;
-  $form['git']['#access'] = FALSE;
+  
+  // Put git settings into environment settings fieldset.
+  $form['git']['#group'] = 'environment_settings';
+  $form['git']['#title'] = t('Git Settings');
+  $form['git']['#description'] = '';
+  
+  // Hide hosting_git's "Repo URL" and branch fields, for now.
+  // @TODO: Allow per-site repo URLs by adding a project setting to allow this.
+  $form['git']['repo_url'] = array(
+    '#type' => 'item',
+    '#title' => t('Git URL'),
+    '#markup' => $project->git_url,
+  );
+  $form['git']['git_ref']['#access'] = FALSE;
+  $form['git']['pull_method']['#access'] = FALSE;
+  $form['git']['pull_url']['#access'] = FALSE;
+
+  // Hide pull method unless allowed.
+  if ($project->settings->deploy['allow_environment_pull_method_config']) {
+    $form['git']['pull_method']['#access'] = TRUE;
+    $form['git']['pull_method']['#element_validate'] = array(
+    
+    );
+  }
 }
 
 /**
