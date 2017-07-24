@@ -1141,28 +1141,25 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
   $form['platform']['#access'] = FALSE;
   $form['profile']['#access'] = FALSE;
   
-  // Put git settings into environment settings fieldset.
-  $form['git']['#group'] = 'environment_settings';
-  $form['git']['#title'] = t('Git Settings');
-  $form['git']['#description'] = '';
-  
-  // Hide hosting_git's "Repo URL" and branch fields, for now.
-  // @TODO: Allow per-site repo URLs by adding a project setting to allow this.
-  $form['git']['repo_url'] = array(
-    '#type' => 'item',
-    '#title' => t('Git URL'),
-    '#markup' => $project->git_url,
-  );
-  $form['git']['git_ref']['#access'] = FALSE;
-  $form['git']['pull_method']['#access'] = FALSE;
-  $form['git']['pull_url']['#access'] = FALSE;
+  // Hide entire Git fieldset, the open up as needed.
+  $form['git']['#access'] = FALSE;
 
   // Hide pull method unless allowed.
   if ($project->settings->deploy['allow_environment_pull_method_config']) {
-    $form['git']['pull_method']['#access'] = TRUE;
-    $form['git']['pull_method']['#element_validate'] = array(
+  
+    // Put git settings into environment settings fieldset.
+    $form['git']['#group'] = 'environment_settings';
+    $form['git']['#title'] = t('Git Settings');
+    $form['git']['#description'] = '';
+    $form['git']['#access'] = TRUE;
     
-    );
+    // Hide gitref and Repo URL field (for now)
+    // @TODO: Add a "allow environments to customize their repo URL" setting.
+    $form['git']['git_ref']['#access'] = FALSE;
+    $form['git']['repo_url']['#access'] = FALSE;
+
+    // So set the default pull method.
+    $form['git']['pull_method']['#default_value'] = $project->settings->deploy['method'];
   }
 }
 
@@ -1201,16 +1198,13 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
     $platform_node->git['repo_docroot'] = $project->drupal_path;
     $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
 
-    // Enable git pull queue for this platform if chosen.
-    if ($project->settings->deploy['method'] == 'queue') {
-      $platform_node->git['pull_method'] = HOSTING_GIT_PULL_QUEUE;
+    // If project allows it, set platform git pull_method from form_state. If not, from project.
+    if ($project->settings->deploy['allow_environment_pull_method_config']) {
+      $platform_node->git['pull_method'] = $form_state['values']['git']['pull_method'];
     }
-    // For devshop "webhook" and "manual" methods, disable git pull for now.
-    // @TODO: Remove devshop "code deploy" task in exchange for hosting_git_pull module.
     else {
-      $platform_node->git['pull_method'] = HOSTING_GIT_PULL_DISABLED;
+      $platform_node->git['pull_method'] = $project->settings->deploy['method'];
     }
-
 
     // Determine which web server to use.
     // If no web server was set and project has a default, make sure we set it.
