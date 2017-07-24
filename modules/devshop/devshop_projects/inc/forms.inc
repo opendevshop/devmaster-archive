@@ -677,7 +677,8 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   if (arg(1) == 'add') {
     devshop_projects_create_environment_form($form, $form_state, $form_id);
 
-    $project = devshop_projects_load_by_name(arg(3));
+    $project_node = devshop_projects_load_by_name(arg(3));
+    $project = $project_node->project;
   }
 
   // Only act on site nodes that are in projects.
@@ -819,6 +820,38 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   // Add our own submit handler.
   $form['actions']['submit']['#submit'][] = 'devshop_projects_environment_settings_submit';
 
+  // Hide entire Git fieldset, the open up as needed.
+  $form['git']['#access'] = FALSE;
+  
+  // Show custom deploy method (@TODO: and git URL) fields
+  if ($project->settings->deploy['allow_environment_pull_method_config']) {
+    
+    // Put git settings into environment settings fieldset.
+    $form['platform_git'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Deployment Automation'),
+      '#group' => 'environment_settings',
+      '#weight' => -1,
+    );
+    
+    // So set the default pull method.
+    $options = hosting_git_pull_method_options();
+    if ($platform = node_load($node->platform)) {
+      $default = $platform->git['pull_method'];
+    }
+    else {
+      $default = $project->settings->deploy['method'];
+    }
+    $form['platform_git']['pull_method'] = array(
+      '#title' => t('Git Pull Method'),
+      '#type' => 'radios',
+      '#default_value' => $default,
+      '#options' => $options,
+      '#element_validate' => array(
+        'devshop_projects_create_environment_form_validate_platform'
+      )
+    );
+  }
 }
 
 /**
@@ -1141,26 +1174,6 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
   $form['platform']['#access'] = FALSE;
   $form['profile']['#access'] = FALSE;
   
-  // Hide entire Git fieldset, the open up as needed.
-  $form['git']['#access'] = FALSE;
-
-  // Hide pull method unless allowed.
-  if ($project->settings->deploy['allow_environment_pull_method_config']) {
-  
-    // Put git settings into environment settings fieldset.
-    $form['git']['#group'] = 'environment_settings';
-    $form['git']['#title'] = t('Deployment Automation');
-    $form['git']['#description'] = '';
-    $form['git']['#access'] = TRUE;
-    
-    // Hide gitref and Repo URL field (for now)
-    // @TODO: Add a "allow environments to customize their repo URL" setting.
-    $form['git']['git_ref']['#access'] = FALSE;
-    $form['git']['repo_url']['#access'] = FALSE;
-
-    // So set the default pull method.
-    $form['git']['pull_method']['#default_value'] = $project->settings->deploy['method'];
-  }
 }
 
 /**
@@ -1187,48 +1200,60 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
 
     // Generate field prefix and suffix using domain name pattern.
     form_set_value($form['title'], devshop_environment_url($project, $element['#value']), $form_state);
-
-    // Attach a new platform node.
-    $platform_node = new stdClass();
-    $platform_node->title = $project->name . '_' . $element['#value'];
-
-    // Specify GIT Url for hosting_git.module
-    $platform_node->git['repo_url'] = $project->git_url;
-    $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
-    $platform_node->git['repo_docroot'] = $project->drupal_path;
-    $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
-
-    // If project allows it, set platform git pull_method from form_state. If not, from project.
-    if ($project->settings->deploy['allow_environment_pull_method_config']) {
-      $platform_node->git['pull_method'] = $form_state['values']['git']['pull_method'];
-    }
-    else {
-      $platform_node->git['pull_method'] = $project->settings->deploy['method'];
-    }
-
-    // Determine which web server to use.
-    // If no web server was set and project has a default, make sure we set it.
-    if (empty($form_state['values']['web_server']) && !empty($project->settings->default_environment['web_server'])) {
-      $platform_node->web_server = $project->settings->default_environment['web_server'];
-    }
-    else {
-      $platform_node->web_server = $form_state['values']['web_server'];
-    }
-
-    // If drupal path, append to code path/environment name
-    if ($project->drupal_path) {
-      $platform_node->publish_path = $project->code_path . '/' . $element['#value'] . '/' . $project->drupal_path;
-    }
-    else {
-      $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
-    }
-
-    // Set value in form_state.
-    form_set_value($form['platform_node'], $platform_node, $form_state);
     form_set_value($form['profile'], 0, $form_state);
     form_set_value($form['platform'], 0, $form_state);
 
   }
+}
+
+/**
+ * Validator for the domain name field: Sets domain according to pattern.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function devshop_projects_create_environment_form_validate_platform($element, &$form_state, $form) {
+  
+  $project_node = node_load($form_state['values']['project_nid']);
+  $project = $project_node->project;
+  
+  // Attach a new platform node.
+  $platform_node = new stdClass();
+  $platform_node->title = $project->name . '_' . $element['#value'];
+  
+  // Specify GIT Url for hosting_git.module
+  $platform_node->git['repo_url'] = $project->git_url;
+  $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
+  $platform_node->git['repo_docroot'] = $project->drupal_path;
+  $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
+  
+  // If project allows it, set platform git pull_method from form_state. If not, from project.
+  if ($project->settings->deploy['allow_environment_pull_method_config']) {
+    $platform_node->git['pull_method'] = $form_state['values']['platform_git']['pull_method'];
+  }
+  else {
+    $platform_node->git['pull_method'] = $project->settings->deploy['method'];
+  }
+  
+  // Determine which web server to use.
+  // If no web server was set and project has a default, make sure we set it.
+  if (empty($form_state['values']['web_server']) && !empty($project->settings->default_environment['web_server'])) {
+    $platform_node->web_server = $project->settings->default_environment['web_server'];
+  }
+  else {
+    $platform_node->web_server = $form_state['values']['web_server'];
+  }
+  
+  // If drupal path, append to code path/environment name
+  if ($project->drupal_path) {
+    $platform_node->publish_path = $project->code_path . '/' . $element['#value'] . '/' . $project->drupal_path;
+  }
+  else {
+    $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
+  }
+  
+  // Set value in form_state.
+  form_set_value($form['platform_node'], $platform_node, $form_state);
 }
 
 /**
