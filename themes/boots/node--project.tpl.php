@@ -142,7 +142,7 @@
     </li>
 
     <!-- Webhook -->
-    <?php if ($project->settings->deploy['method'] == 'webhook'):
+    <?php if ($project->settings->deploy['method'] == HOSTING_GIT_PULL_CALLBACK):
 
         $float = empty($project->settings->deploy['last_webhook'])? 'inline': 'pull-right';
       ?>
