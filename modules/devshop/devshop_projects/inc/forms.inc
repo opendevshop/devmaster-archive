@@ -1149,7 +1149,7 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
   
     // Put git settings into environment settings fieldset.
     $form['git']['#group'] = 'environment_settings';
-    $form['git']['#title'] = t('Git Settings');
+    $form['git']['#title'] = t('Deployment Automation');
     $form['git']['#description'] = '';
     $form['git']['#access'] = TRUE;
     
