@@ -483,13 +483,17 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
         }
         break;
 
-      // Deploy task form
+      // Git Checkout
       case 'git-checkout':
-      case 'git-pull':
-
-        // Alter title of deploy task.
         $node = node_load($form['nid']['#value']);
-        drupal_set_title(t('Deploy code to Environment "@env"', array('@env' => $node->environment->name)), PASS_THROUGH);
+        drupal_set_title(t('Checkout code in Environment "@env"?', array('@env' => $node->environment->name)), PASS_THROUGH);
+        $form['actions']['cancel']['#value'] = l(t('Cancel'), "node/{$node->project->nid}");
+        break;
+  
+      // Git Pull
+      case 'git-pull':
+        $node = node_load($form['nid']['#value']);
+        drupal_set_title(t('Pull code to Environment "@env"?', array('@env' => $node->environment->name)), PASS_THROUGH);
         $form['actions']['cancel']['#value'] = l(t('Cancel'), "node/{$node->project->nid}");
         break;
 
