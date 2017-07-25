@@ -451,7 +451,11 @@ function devshop_project_load($node) {
 //        ),
 //      )
 //    );
-    
+
+    // Override pull method if project settings say so.
+    if (!$node->project->settings->deploy['allow_environment_pull_method_config']) {
+      $environment->pull_method = $project->settings->deploy['method'];
+    }
     
     // Load pull method text.
     switch($environment->pull_method) {
