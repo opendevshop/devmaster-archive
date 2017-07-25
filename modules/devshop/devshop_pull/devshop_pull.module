@@ -42,6 +42,19 @@ function devshop_pull_callback($project_hosting_context, $hash) {
     exit;
   }
   
+  // Make sure host is allowed.
+  // Load the node & list of allowed IPs.
+  $allowed_ips = explode("\n", trim(variable_get('hosting_git_pull_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
+  array_filter(array_map('trim', $allowed_ips));
+  if (!hosting_git_pull_ip_match(ip_address(), $allowed_ips)) {
+    $message = ip_address() . " is not authorized to invoke a Pull Code request.";
+    $status = HOSTING_GIT_WEBHOOK_STATUS_ACCESS_DENIED;
+    watchdog('hosting_git_pull', $message, array(), WATCHDOG_WARNING);
+    header('HTTP/1.0 403 Forbidden');
+    print $message;
+    exit;
+  }
+  
   // Load the code from hosting_git_pull and trigger the individual platforms' webhook URL.
   foreach ($project->environments as $name => $environment) {
     $platform = node_load($environment->platform);
