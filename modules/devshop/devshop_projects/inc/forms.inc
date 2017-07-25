@@ -1270,10 +1270,6 @@ function devshop_projects_create_environment_form_validate_platform($element, &$
   
   // Set value in form_state.
   form_set_value($form['platform_node'], $platform_node, $form_state);
-  
-  dsm($platform_node, 'platform node');
-  form_set_error('', 'STOP');
-  
 }
 
 /**
