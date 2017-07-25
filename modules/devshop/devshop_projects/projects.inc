@@ -137,6 +137,7 @@ function devshop_project_load($node) {
           p.publish_path as root,
           p.publish_path as publish_path,
           g.git_ref as git_ref,
+          gp.pull_method as pull_method,
           g.repo_url as git_url,
           g.repo_path as repo_path,
           http.title as remote_host,
@@ -162,6 +163,7 @@ function devshop_project_load($node) {
         LEFT JOIN {hosting_context} cp ON cp.nid = p.nid
         LEFT JOIN {hosting_context} cs ON cs.nid = s.nid
         LEFT JOIN {hosting_git} g ON p.nid = g.nid
+        LEFT JOIN {hosting_git_pull} gp ON g.nid = gp.nid
         LEFT JOIN {node} http ON p.web_server = http.nid
         LEFT JOIN {node} db ON s.db_server = db.nid
         LEFT JOIN {node} pn ON e.project_nid = pn.nid
