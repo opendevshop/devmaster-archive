@@ -813,6 +813,7 @@ function boots_preprocess_node_project(&$vars){
 
   $url =  $node->project->webhook_url;
   $project_name = $node->title;
+  $visit_text = t('Visit Webhook');
 
   // Only show the webhook url to those who can create projects.
   if (user_access('create project')) {
@@ -849,6 +850,8 @@ data-target="#webhook-modal" title="Webhook URL">
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    
+                    <a href="$url" target="_blank" class="btn btn-text pull-left">$visit_text</a>
                   </div>
                 </div>
               </div>
