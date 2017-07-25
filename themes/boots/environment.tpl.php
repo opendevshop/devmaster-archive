@@ -359,15 +359,6 @@
 
 
   <!-- Environment Info -->
-    <div class="list-group-item environment-info">
-        <label>
-          <?php print t('Created'); ?>
-        </label>
-        <span class="content">
-            <time class="timeago" datetime="<?php print date('c', $environment->created) ?>"><?php print format_date($environment->created); ?></time>
-            <?php print $environment->install_method_label; ?>
-        </span>
-    </div>
     <?php
       // SITUATION: Environment is Active!
       if (empty($environment->tasks['delete'])): ?>
@@ -594,6 +585,16 @@ sites/all/drush/drushrc.php
     }
 
     ?>
+    <div class="list-group-item environment-info">
+      <label>
+        <?php print t('Created'); ?>
+      </label>
+      <span class="content">
+        <time class="timeago" datetime="<?php print date('c', $environment->created) ?>"><?php print format_date($environment->created); ?></time>
+        <?php print $environment->install_method_label; ?>
+      </span>
+    </div>
+    
     <div class="list-group-item list-group-item-git">
       <label><?php print t('Git Status') ?></label>
 
