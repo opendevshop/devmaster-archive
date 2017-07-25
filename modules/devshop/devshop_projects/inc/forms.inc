@@ -197,7 +197,7 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   $form['project']['settings']['deploy']['method'] = array(
     '#title' => t('Default Git Pull Method'),
     '#type' => 'radios',
-    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : HOSTING_GIT_PULL_DISABLED,
+    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : HOSTING_GIT_PULL_CALLBACK,
     '#options' => $options,
   );
 
