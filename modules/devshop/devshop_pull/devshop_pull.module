@@ -59,7 +59,11 @@ function devshop_pull_callback($project_hosting_context, $hash) {
   foreach ($project->environments as $name => $environment) {
     $platform = node_load($environment->platform);
     $hash = _hosting_git_pull_webhook_hash_create($platform);
-    hosting_git_pull_callback($platform->hosting_name, $hash);
+    
+    // Only trigger git pull on Branch environments.
+    if ($environment->git_ref_type == 'branch') {
+      hosting_git_pull_callback($platform->hosting_name, $hash);
+    }
   }
 }
 
