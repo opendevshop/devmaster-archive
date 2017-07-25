@@ -350,7 +350,7 @@ function devshop_projects_validate($node, &$form, &$form_state) {
       '%path' => $form_state['values']['project']['code_path'],
     )));
   }
-  if (db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND base_url = :base_url AND n.nid != :nid;;', array(':status' => 1, ':base_url' => $form_state['values']['project']['base_url'], ':nid' => $form_state['values']['nid']))->fetchField()) {
+  if (variable_get('devshop_projects_allow_custom_base_url', FALSE) && db_query('SELECT n.nid FROM {hosting_devshop_project} d LEFT JOIN {node} n ON d.nid = n.nid WHERE status = :status AND base_url = :base_url AND n.nid != :nid;;', array(':status' => 1, ':base_url' => $form_state['values']['project']['base_url'], ':nid' => $form_state['values']['nid']))->fetchField()) {
     form_set_error('base_url', t('The base URL %url is in use by another project.  Please enter a different base URL.', array(
       '%url' => $form_state['values']['project']['base_url'],
     )));
@@ -856,6 +856,15 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
       )
     );
   }
+  else {
+    $form['platform_git']['pull_method'] = array(
+      '#type' => 'value',
+      '#value' => $project->settings->deploy['method'],
+      '#element_validate' => array(
+        'devshop_projects_create_environment_form_validate_platform'
+      ),
+    );
+  }
 }
 
 /**
@@ -1223,21 +1232,24 @@ function devshop_projects_create_environment_form_validate_platform($element, &$
   
   // Attach a new platform node.
   $platform_node = new stdClass();
-  $platform_node->title = $project->name . '_' . $element['#value'];
+  $platform_node->title = $project->name . '_' . $form_state['values']['environment_name'];
   
   // Specify GIT Url for hosting_git.module
   $platform_node->git['repo_url'] = $project->git_url;
-  $platform_node->git['repo_path'] = $project->code_path . '/' . $element['#value'];
+  $platform_node->git['repo_path'] = $project->code_path . '/' . $form_state['values']['environment_name'];
   $platform_node->git['repo_docroot'] = $project->drupal_path;
   $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
   
   // If project allows it, set platform git pull_method from form_state. If not, from project.
+  
+  dsm($project, 'PROJECT');
   if ($project->settings->deploy['allow_environment_pull_method_config']) {
     $platform_node->git['pull_method'] = $form_state['values']['platform_git']['pull_method'];
   }
   else {
     $platform_node->git['pull_method'] = $project->settings->deploy['method'];
   }
+  dsm($platform_node, 'PROJECT');
   
   // Determine which web server to use.
   // If no web server was set and project has a default, make sure we set it.
@@ -1250,14 +1262,18 @@ function devshop_projects_create_environment_form_validate_platform($element, &$
   
   // If drupal path, append to code path/environment name
   if ($project->drupal_path) {
-    $platform_node->publish_path = $project->code_path . '/' . $element['#value'] . '/' . $project->drupal_path;
+    $platform_node->publish_path = $project->code_path . '/' . $form_state['values']['environment_name'] . '/' . $project->drupal_path;
   }
   else {
-    $platform_node->publish_path = $project->code_path . '/' . $element['#value'];
+    $platform_node->publish_path = $project->code_path . '/' . $form_state['values']['environment_name'];
   }
   
   // Set value in form_state.
   form_set_value($form['platform_node'], $platform_node, $form_state);
+  
+  dsm($platform_node, 'platform node');
+  form_set_error('', 'STOP');
+  
 }
 
 /**
