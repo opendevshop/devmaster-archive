@@ -773,7 +773,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   );
 
   // Load deploy hooks form element.
-  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, $environment);
+  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, isset($environment)? $environment: NULL);
 
   // UX Improvements
   // Project Settings Vertical Tabs
