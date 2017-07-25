@@ -28,6 +28,7 @@ Feature: Create a project
     Then I should see "<name>"
     And I should see "<url>"
     When I fill in "<docroot>" for "Path to Drupal"
+    When I fill in "<makefile>" for "Path to Makefile"
 
     # Step 3
     When I press "Next"
