@@ -744,23 +744,6 @@ function boots_preprocess_node_project(&$vars){
       $vars['deploy_label'] =  t('Branches refreshing.  Please wait.');
     }
   }
-  else {
-    $vars['deploy_label'] = t('Deploy a tag or branch');
-
-    foreach ($node->project->settings->git['refs'] as $ref => $type){
-      $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
-        'query' =>array(
-          'git_ref' => $ref,
-        )
-      ));
-      $icon = $type == 'tag'? 'tag': 'code-fork';
-
-      $vars['git_refs'][$ref] = "<a href='$href'>
-        <i class='fa fa-$icon'></i>
-        $ref
-      </a>";
-    }
-  }
 
   // Get available servers
   $vars['web_servers'] = hosting_get_servers('http');
