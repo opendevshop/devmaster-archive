@@ -1427,7 +1427,7 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
     $project_cache = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['cache'] : FALSE;
     $project_revert = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['revert'] : FALSE;
     $project_dothooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['dothooks'] : FALSE;
-    $project_acquia_hooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['acquia_hooks'] : FALSE;
+    $project_acquia_hooks = isset($project->settings->deploy['default_hooks']['acquia_hooks']) ? $project->settings->deploy['default_hooks']['acquia_hooks'] : FALSE;
     $project_composer_install = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['composer'] : FALSE;
   }
 
