@@ -1268,14 +1268,6 @@ function devshop_projects_site_form_validate_platform_pull_method($element, &$fo
     // Save platform node to form state values, to be picked up by hosting_site_update()
     form_set_value($form['platform_node'], $platform_node, $form_state);
   }
-  
-//  $project_node = node_load($form_state['values']['project_nid']);
-//  $project = $project_node->project;
-//  dsm($platform_node, 'platform');
-//
-//  form_set_error('', 'STOP');
-//
-  
 }
 
 /**
