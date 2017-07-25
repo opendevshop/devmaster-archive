@@ -36,7 +36,7 @@ Feature: Create a project
 
     And I press "Add environment"
     And I fill in "live" for "project[environments][NEW][name]"
-    And I select "7.0" from "project[environments][NEW][git_ref]"
+    And I select "8.0" from "project[environments][NEW][git_ref]"
     And I press "Add environment"
     Then I press "Next"
 
@@ -44,7 +44,7 @@ Feature: Create a project
     And I should see "dev"
     And I should see "live"
     And I should see "master"
-    And I should see "7.0"
+    And I should see "8.0"
 
     When I run drush "hosting-tasks --force --fork=0 --strict=0"
     Then print last drush output
