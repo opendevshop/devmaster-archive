@@ -124,3 +124,23 @@ Feature: Create a project
 
     Then I should see "DevShop Project drpl8 has been updated."
     And I should see an ".environment-link .fa-bolt" element
+
+    When I click "Visit Webhook"
+    When I should get a "403" HTTP response
+    Then I should see "is not authorized to invoke a Pull Code request"
+
+    Then I am at "admin/hosting/git"
+    And I fill in "" for "Control Access by IP"
+    Then I press "Save configuration"
+
+    Then I am on the homepage
+    And I click "drpl8"
+    When I click "Visit Webhook"
+    Then I should see "Webhook Received!"
+    And I should see "Task started"
+
+    Given I move backward one page
+    When I reload the page
+
+    Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-queued" element
+    And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-queued" element
