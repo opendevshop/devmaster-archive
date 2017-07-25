@@ -382,6 +382,7 @@
                                 <span class="caret"></span>
                             </button>
                           <?php if (user_access('create git-checkout task')): ?>
+                            <?php unset($git_refs['HEAD']); ?>
                             <ul class="dropdown-menu btn-git-ref" role="menu">
                                 <li><label><?php print t('Checkout branch or tag'); ?></label></li>
                                 <?php if (count($git_refs)): ?>
