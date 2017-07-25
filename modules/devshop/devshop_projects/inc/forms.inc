@@ -857,12 +857,9 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     );
   }
   else {
-    $form['platform_git']['pull_method'] = array(
+    $form['platform_node'] = array(
       '#type' => 'value',
-      '#value' => $project->settings->deploy['method'],
-      '#element_validate' => array(
-        'devshop_projects_create_environment_form_validate_platform'
-      ),
+      '#value' => NULL,
     );
   }
 }
