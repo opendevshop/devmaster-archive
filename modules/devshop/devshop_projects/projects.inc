@@ -453,6 +453,38 @@ function devshop_project_load($node) {
 //        ),
 //      )
 //    );
+    
+    
+    // Load pull method text.
+    switch($environment->pull_method) {
+      case HOSTING_GIT_PULL_CALLBACK:
+        $environment->pull_method_text = t('Auto Pull');
+        $environment->pull_method_help = t('Code is pulled to the server every time a commit notification is received from your git repository.');
+        break;
+      case HOSTING_GIT_PULL_DISABLED:
+        $environment->pull_method_text = t('Pull Disabled');
+        $environment->pull_method_help = t('You may not Pull Code to this environment.');
+        break;
+      case HOSTING_GIT_PULL_MANUAL:
+        $environment->pull_method_text = t('Manual Pull');
+        $environment->pull_method_help = t('You must manually pull code to the server, either via Terminal or: ') . l('<i class="fa fa-download"></i> ' . t('Pull Code'), "hosting_confirm/{$environment->platform}/platform_git-pull", array(
+          'attributes' => array(
+            'class' => array('btn btn-success')
+          ),
+            'html' => TRUE,
+          ));
+        break;
+      case HOSTING_GIT_PULL_QUEUE:
+        $environment->pull_method_text = t('Queued Pull');
+        $queues = hosting_get_queues();
+        $environment->pull_method_help = t('Code is pulled to this environment every @freq.', array(
+          '@freq' => format_interval($queues['pull']['frequency'], 1)
+        ));
+        if (user_access('administer hosting queues')) {
+          $environment->pull_method_help .= ' ' . l(t("Configure Queues"), 'admin/hosting/queues', array('attributes' => array('target' => '_blank')));
+        }
+        break;
+    }
 
     // Save to project environments collection.
     drupal_alter('devshop_environment', $environment, $project);

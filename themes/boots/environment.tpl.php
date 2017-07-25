@@ -412,18 +412,17 @@
             <div class="environment-deploy list-group-item">
 
                 <!-- Deploy -->
-                <label><?php print t('Deploy'); ?></label>
                 <div class="btn-group btn-toolbar" role="toolbar">
 
-                    <?php if (user_access('create devshop-deploy task')): ?>
                         <!-- Deploy: Code -->
                         <div class="btn-group btn-deploy-code" role="group">
-                            <button type="button" class="btn btn-default dropdown-toggle btn-git-ref" data-toggle="dropdown"><i class="fa fa-code"></i>
-                                <?php print t('Code'); ?>
+                            <button type="button" class="btn btn-default dropdown-toggle btn-git-ref" data-toggle="dropdown" title="<?php print t('Current Git !type: ', array('!type' => $environment->git_ref_type)) . $environment->git_ref; ?>">
+                                    <i class='fa fa-<?php print $environment->git_ref_type == 'tag'? 'tag': 'code-fork'; ?>'></i> <?php print $environment->git_ref; ?>
                                 <span class="caret"></span>
                             </button>
+                          <?php if (user_access('create git-checkout task')): ?>
                             <ul class="dropdown-menu btn-git-ref" role="menu">
-                                <li><label><?php print t('Deploy branch or tag'); ?></label></li>
+                                <li><label><?php print t('Checkout branch or tag'); ?></label></li>
                                 <?php if (count($git_refs)): ?>
                                     <?php foreach ($git_refs as $ref => $item): ?>
                                         <li>
@@ -432,8 +431,18 @@
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </ul>
+                          <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                        <div class="btn-group btn-deploy-code" role="group">
+
+                          <button type="button" class="btn btn-default dropdown-toggle  btn-pull-method" data-toggle="dropdown" title="<?php print t('Pull Method: ') . $environment->pull_method_text; ?>">
+                              <i class="fa fa-download"></i> <?php print $environment->pull_method_text; ?>
+                          </button>
+                            <p class="dropdown-menu btn-pull-method" role="menu">
+                                  <?php print $environment->pull_method_help; ?>
+                            </p>
+                        </div>
+
 
                     <?php if (user_access('create sync task')): ?>
                         <!-- Deploy: Data -->
@@ -449,7 +458,7 @@
                                 <?php elseif (count($source_environments) == 0): ?>
                                     <li><label><?php print t('No other environments available.'); ?></label></li>
                                 <?php else: ?>
-                                    <li><label><?php print t('Deploy data from'); ?></label></li>
+                                    <li><label><?php print t('Sync data from'); ?></label></li>
                                     <?php foreach ($source_environments as $source): ?>
                                         <?php if ($source->name == $environment->name) continue; ?>
                                         <li><a href="/hosting_confirm/<?php print $environment->site ?>/site_sync/?source=<?php print $source->site ?>">
