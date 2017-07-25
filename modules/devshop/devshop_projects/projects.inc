@@ -94,7 +94,9 @@ function devshop_project_load($node) {
   
   
   // Create "refs" array to determine ref type.
-  $project->settings->git['refs'] = array();
+  $project->settings->git['refs'] = array(
+    'HEAD' => 'branch',
+  );
   foreach ($project->settings->git as $type => $refs) {
     if (is_array($refs)) {
       foreach ($refs as $ref) {
