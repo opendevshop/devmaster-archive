@@ -836,7 +836,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     
     // So set the default pull method.
     $options = hosting_git_pull_method_options();
-    if ($platform = node_load($node->platform)) {
+    if (isset($node->platform) && $platform = node_load($node->platform)) {
       $default = $platform->git['pull_method'];
     }
     else {
