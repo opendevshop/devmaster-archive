@@ -470,3 +470,13 @@ function devshop_projects_update_7009 () {
     'hosting_git_checkout',
   ));
 }
+
+/**
+ * Save menu options for node types as arrays to avoid warnings in logs.
+ */
+function devshop_projects_update_7010 () {
+  variable_set('menu_options_client', array());
+  variable_set('menu_options_platform', array());
+  variable_set('menu_options_server', array());
+  variable_set('menu_options_site', array());
+}
