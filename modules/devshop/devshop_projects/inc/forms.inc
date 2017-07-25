@@ -1241,15 +1241,12 @@ function devshop_projects_create_environment_form_validate_platform($element, &$
   $platform_node->git['git_ref'] = $form_state['values']['git_ref'];
   
   // If project allows it, set platform git pull_method from form_state. If not, from project.
-  
-  dsm($project, 'PROJECT');
   if ($project->settings->deploy['allow_environment_pull_method_config']) {
     $platform_node->git['pull_method'] = $form_state['values']['platform_git']['pull_method'];
   }
   else {
     $platform_node->git['pull_method'] = $project->settings->deploy['method'];
   }
-  dsm($platform_node, 'PROJECT');
   
   // Determine which web server to use.
   // If no web server was set and project has a default, make sure we set it.
