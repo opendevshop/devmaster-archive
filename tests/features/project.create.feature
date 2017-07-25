@@ -136,6 +136,7 @@ Feature: Create a project
     Then I am on the homepage
     And I click "drpl8"
     When I click "Visit Webhook"
+    Then print last response
     Then I should see "Webhook Received!"
     And I should see "Task started"
 
