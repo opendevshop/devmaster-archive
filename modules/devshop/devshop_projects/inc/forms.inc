@@ -676,7 +676,12 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     '#weight' => -9,
     '#tree' => true,
   );
-
+  
+  $form['platform_node'] = array(
+    '#type' => 'value',
+    '#value' => NULL,
+  );
+  
   // On site create page, use devshop_projects_create_environment_form()
   if (arg(1) == 'add') {
     devshop_projects_create_environment_form($form, $form_state, $form_id);
@@ -854,12 +859,6 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
       '#element_validate' => array(
         'devshop_projects_site_form_validate_platform_pull_method'
       ),
-    );
-  }
-  else {
-    $form['platform_node'] = array(
-      '#type' => 'value',
-      '#value' => NULL,
     );
   }
 }
@@ -1172,13 +1171,7 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
     '#value' => $project->nid,
     '#type' => 'value',
   );
-
-  $form['platform_node'] = array(
-    '#type' => 'value',
-    '#value' => NULL,
-  );
-
-
+  
   // Remove platform and profile options.
   // @TODO: Patch Aegir so we don't have to load all of these platform options.
   $form['platform']['#access'] = FALSE;
@@ -1240,6 +1233,8 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
       $platform_node->web_server = $form_state['values']['web_server'];
     }
   
+    // Set value in form_state.
+    form_set_value($form['platform_node'], $platform_node, $form_state);
     // If drupal path, append to code path/environment name
     if ($project->drupal_path) {
       $platform_node->publish_path = $project->code_path . '/' . $form_state['values']['environment_name'] . '/' . $project->drupal_path;
@@ -1261,8 +1256,25 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
  */
 function devshop_projects_site_form_validate_platform_pull_method($element, &$form_state, $form) {
   
+  // Only work on Update site. Insert site is handled above.
+  if (!empty($form_state['node']->nid) && !empty($form_state['values']['platform'])) {
+  
+    // Load platform node to set as value.
+    $platform_node = node_load($form_state['values']['platform']);
+    
+    // Set value for pull_method property.
+    $platform_node->git['pull_method'] = $element['#value'];
+    
+    // Save platform node to form state values, to be picked up by hosting_site_update()
+    form_set_value($form['platform_node'], $platform_node, $form_state);
+  }
+  
 //  $project_node = node_load($form_state['values']['project_nid']);
 //  $project = $project_node->project;
+//  dsm($platform_node, 'platform');
+//
+//  form_set_error('', 'STOP');
+//
   
 }
 
