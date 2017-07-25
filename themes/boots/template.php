@@ -182,7 +182,7 @@ function boots_preprocess_environment(&$vars) {
 
   // Determine Environment State. Only one of these may be active at a time.
   // State: Site install failed.
-  if (current($environment->tasks['install'])->task_status == HOSTING_TASK_ERROR) {
+  if (isset($environment->tasks['install']) && current($environment->tasks['install'])->task_status == HOSTING_TASK_ERROR) {
     $install_task = current($environment->tasks['install']);
     $buttons = l(
       '<i class="fa fa-refresh"></i> ' . t('Retry'),
