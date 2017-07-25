@@ -144,3 +144,10 @@ Feature: Create a project
 
     Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-queued" element
     And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-queued" element
+
+    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    Then print last drush output
+
+    When I reload the page
+    Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-success" element
+    And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-success" element
