@@ -171,6 +171,14 @@ function devshop_projects_devshop_environment_menu($environment) {
       $items[] = '<div class="divider"></div>';
     }
 
+    // If allowed, add link to git-pull task.
+    if (drupal_valid_path("hosting_confirm/{$environment->platform}/platform_git-pull")) {
+      $items[] = l('<i class="fa fa-download"></i>' . t('Git Pull'), "hosting_confirm/{$environment->platform}/platform_git-pull", array(
+        'html' => TRUE,
+      ));
+      $items[] = '<div class="divider"></div>';
+    }
+  
     $items[] = 'verify';
     $items[] = 'flush_cache';
     $items[] = 'rebuild_registry';
