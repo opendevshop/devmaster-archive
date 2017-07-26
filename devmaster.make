@@ -18,7 +18,7 @@ includes[devshop] = "drupal-org.make"
 ; Aegir Modules
 ; For development, use latest branch.
 ; For release, use tagged version
-projects[hosting][download][branch] = "7.x-3.x-devshop"
+projects[hosting][download][branch] = "7.x-3.x"
 projects[hosting][download][type] = "git"
 
 projects[hosting][subdir] = "aegir"
