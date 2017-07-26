@@ -136,7 +136,7 @@ Feature: Create a project
 
     Then I am on the homepage
     And I click "drpl8"
-    When I run drush "vget hosting_git_pull_webhook_ip_acl"
+    When I run drush "vget" "hosting_git_pull_webhook_ip_acl"
     Then print last drush output
 
     When I click "Visit Webhook"
