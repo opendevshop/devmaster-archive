@@ -96,6 +96,14 @@ function devshop_bitbucket_form_project_node_form_alter(&$form, &$form_state, $f
       '#description' => t('Select the method for creating the pull request environments.'),
       '#options' => $options,
   );
+
+  // Deploy code to environments on PR merge 
+  $form['project']['settings']['bitbucket']['pull_request_deploy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Deploy code on pull request merged'),
+    '#default_value' => isset($node->project->settings->bitbucket) ? $node->project->settings->bitbucket['pull_request_deploy'] : FALSE,
+    '#description' => t('Deploy code to matching environments on pull request merged.'),
+  );
 }
 
 /**
@@ -412,6 +420,7 @@ function devshop_bitbucket_webhook($project_node) {
       case 'pullrequest:updated':
       case 'pullrequest:declined':
       case 'pullrequest:merged':
+      case 'pullrequest:fulfilled':
 
         // If pull request environments is enabled...
         if ($project->settings->bitbucket['pull_request_environments']) {
@@ -702,6 +711,24 @@ function devshop_bitbucket_webhook($project_node) {
               elseif ($project->environments[$environment_name]->platform) {
                 hosting_add_task($project->environments[$environment_name]->platform, 'delete');
                 $message .= "Environment $environment_name (Platform Node: {$project->environments[$environment_name]->platform}) scheduled for deletion.";
+              }
+            }
+          }
+        }
+        if (!empty($project->settings->bitbucket['pull_request_deploy']) && $data->pullrequest->state == 'MERGED') {
+          $message = "Pull Request Merged \n";
+          $git_ref = $data->pullrequest->destination->branch->name;
+          // Check for environments set to pull
+          $environments_to_pull = array();
+          foreach ($project->environments as $environment_name => $environment) {
+            // Only pull if deploy is not disabled and environment is same branch as destination.
+            if ($git_ref == $environment->git_ref && empty($environment->settings->pull_disabled)) {
+              $environments_to_pull[] = $environment->name;
+              // Default args to the environments deploy settings.
+              $args = $environment->settings->deploy;
+              $args['git_ref'] = $environment->git_ref;
+              if (isset($environment->site) && $node = node_load($environment->site)) {
+                hosting_add_task($environment->site, 'devshop-deploy', $args);
               }
             }
           }
