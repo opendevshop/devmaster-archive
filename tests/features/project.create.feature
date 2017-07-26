@@ -130,11 +130,13 @@ Feature: Create a project
     Then I should see "is not authorized to invoke a Pull Code request"
 
     Then I am at "admin/hosting/git"
-    And I fill in "" for "Control Access by IP"
+    And I fill in " " for "Control Access by IP"
     Then I press "Save configuration"
 
     Then I am on the homepage
     And I click "drpl8"
+    When I run drush "vget hosting_git_pull_webhook_ip_acl"
+
     When I click "Visit Webhook"
     Then print last response
     Then I should see "Webhook Received!"
