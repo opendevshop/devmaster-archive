@@ -132,10 +132,12 @@ Feature: Create a project
     Then I am at "admin/hosting/git"
     And I fill in " " for "Control Access by IP"
     Then I press "Save configuration"
+    Then print last response
 
     Then I am on the homepage
     And I click "drpl8"
     When I run drush "vget hosting_git_pull_webhook_ip_acl"
+    Then print last drush output
 
     When I click "Visit Webhook"
     Then print last response
