@@ -36,7 +36,7 @@ function devshop_pull_callback($project_hosting_context, $hash) {
   // Make sure the security code is valid
   if (_hosting_git_pull_webhook_hash_create($project_node) != $hash) {
     $message = "Security code $hash is not valid!!!!";
-    watchdog('hosting_git_pull', $message, array(), WATCHDOG_WARNING);
+    watchdog('devshop_git_pull', $message, array(), WATCHDOG_WARNING);
     header('HTTP/1.0 403 Forbidden');
     print $message;
     exit;
