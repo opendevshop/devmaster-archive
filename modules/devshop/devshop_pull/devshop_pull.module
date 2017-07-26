@@ -64,13 +64,19 @@ function devshop_pull_callback($project_hosting_context, $hash) {
   }
   
   // Load the code from hosting_git_pull and trigger the individual platforms' webhook URL.
+  print "Environments found: " . implode(', ', array_keys($project->environments));
+  
   foreach ($project->environments as $name => $environment) {
     $platform = node_load($environment->platform);
     $hash = _hosting_git_pull_webhook_hash_create($platform);
     
     // Only trigger git pull on Branch environments.
     if ($environment->git_ref_type == 'branch') {
+      print "Environment $environment->name on branch $environment->git_ref \n\n";
       hosting_git_pull_callback($platform->hosting_name, $hash);
+    }
+    else {
+      print "Environment $environment->name is on a $environment->git_ref_type \n\n";
     }
   }
 }
