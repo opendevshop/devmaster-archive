@@ -49,7 +49,7 @@ function devshop_pull_callback($project_hosting_context, $hash) {
   if (!hosting_git_pull_ip_match(ip_address(), $allowed_ips)) {
     $message = ip_address() . " is not authorized to invoke a Pull Code request.";
     $status = HOSTING_GIT_WEBHOOK_STATUS_ACCESS_DENIED;
-    watchdog('hosting_git_pull', $message, array(), WATCHDOG_WARNING);
+    watchdog('devshop_git_pull', $message, array(), WATCHDOG_WARNING);
     header('HTTP/1.0 403 Forbidden');
     print $message;
     exit;
