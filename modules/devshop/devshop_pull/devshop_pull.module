@@ -55,6 +55,14 @@ function devshop_pull_callback($project_hosting_context, $hash) {
     exit;
   }
   
+  // Handle no envionments.
+  if (empty($project->environments)) {
+    $message ="Project {$project->name} has no envionments! Nothing to pull...";
+    watchdog('devshop_git_pull', $message, array(), WATCHDOG_WARNING);
+    print $message;
+    exit;
+  }
+  
   // Load the code from hosting_git_pull and trigger the individual platforms' webhook URL.
   foreach ($project->environments as $name => $environment) {
     $platform = node_load($environment->platform);
