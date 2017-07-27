@@ -895,14 +895,14 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
 
     // Show a link or a explanation, depending on the user's access.
     if (drupal_valid_path("node/{$project->nid}/edit")) {
-      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method see !project_link.', array(
+      $form['git']['git_hooks']['#description'] .= t('To change the Git Hooks see !project_link.', array(
         '!project_link' => l(t('Project Settings'), "node/{$project->nid}/edit", array(
           'fragment' => 'edit-project-settings-deploy'
         ))
       ));
     }
     else {
-      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method, ask an administrator to adjust the Project Settings.');
+      $form['git']['git_hooks']['#description'] .= t('To change the Git Hooks, ask an administrator to adjust the Project Settings.');
     }
   }
 }
