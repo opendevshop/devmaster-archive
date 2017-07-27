@@ -27,6 +27,8 @@ projects[hosting][subdir] = "aegir"
 projects[eldir][type] = theme
 
 projects[hosting_git][subdir] = aegir
+projects[hosting_git][download][branch] = "2897894-git-hooks"
+projects[hosting_git][download][type] = "git"
 
 # @TODO: PIn this on next release of hosting_git.
 projects[hosting_git][download][branch] = "7.x-3.x"
