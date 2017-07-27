@@ -782,7 +782,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   );
 
   // Load deploy hooks form element.
-  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, isset($environment)? $environment: NULL);
+//  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, isset($environment)? $environment: NULL);
 
   // UX Improvements
   // Project Settings Vertical Tabs
@@ -830,28 +830,24 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   $form['actions']['submit']['#submit'][] = 'devshop_projects_environment_settings_submit';
 
   // Hide entire Git fieldset, the open up as needed.
-  $form['git']['#access'] = FALSE;
-  
+  $form['git']['#group'] = 'environment_settings';
+  $form['git']['#title'] = t('Deployment & Git');
+
+  // Unset site git URL fields, for now.
+  // @TODO: See about allowing site folder level git repos.
+
   // Show custom deploy method (@TODO: and git URL) fields
+  $options = hosting_git_pull_method_options();
   if ($project->settings->deploy['allow_environment_pull_method_config']) {
     
-    // Put git settings into environment settings fieldset.
-    $form['platform_git'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Deployment Automation'),
-      '#group' => 'environment_settings',
-      '#weight' => -1,
-    );
-    
     // So set the default pull method.
-    $options = hosting_git_pull_method_options();
     if (isset($node->platform) && $platform = node_load($node->platform)) {
       $default = $platform->git['pull_method'];
     }
     else {
       $default = $project->settings->deploy['method'];
     }
-    $form['platform_git']['pull_method'] = array(
+    $form['git']['platform_pull_method'] = array(
       '#title' => t('Git Pull Method'),
       '#type' => 'radios',
       '#default_value' => $default,
@@ -860,6 +856,54 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
         'devshop_projects_site_form_validate_platform_pull_method'
       ),
     );
+  }
+
+  // Display current pull method, as long as there is a valid platform.
+  elseif (isset($node->platform) && $platform = node_load($node->platform)) {
+    $form['git']['platform_pull_method']['#title'] = t('Git Pull Method');
+    $form['git']['platform_pull_method']['#type'] = 'item';
+    $form['git']['platform_pull_method']['#markup'] =  $options[$platform->git['pull_method']];
+
+    // Show a link or a explanation, depending on the user's access.
+    if (drupal_valid_path("node/{$project->nid}/edit")) {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method see !project_link.', array(
+        '!project_link' => l(t('Project Settings'), "node/{$project->nid}/edit", array(
+          'fragment' => 'edit-project-settings-deploy'
+        ))
+      ));
+    }
+    else {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method, ask an administrator to adjust the Project Settings.');
+    }
+  }
+
+  // Remove site pull method and pull url for now.
+  $form['git']['#access'] = TRUE;
+  $form['git']['pull_method']['#access'] = FALSE;
+  $form['git']['pull_url']['#access'] = FALSE;
+  $form['git']['#description'] = '';
+
+  // Block access to hooks, show config instead.
+  if (!$project->settings->deploy['allow_environment_deploy_config']) {
+    $hooks = module_invoke_all('hosting_git_hooks');
+    foreach ($hooks as $name => $hook) {
+      $name = ucfirst($name);
+      $items[] = "<label>$name:</label> " . $hook['description'];
+    }
+    $form['git']['git_hooks']['#type'] = 'item';
+    $form['git']['git_hooks']['#markup'] = theme('item_list', array('items' => $items));
+
+    // Show a link or a explanation, depending on the user's access.
+    if (drupal_valid_path("node/{$project->nid}/edit")) {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method see !project_link.', array(
+        '!project_link' => l(t('Project Settings'), "node/{$project->nid}/edit", array(
+          'fragment' => 'edit-project-settings-deploy'
+        ))
+      ));
+    }
+    else {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method, ask an administrator to adjust the Project Settings.');
+    }
   }
 }
 
@@ -1218,7 +1262,7 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
   
     // If project allows it, set platform git pull_method from form_state. If not, from project.
     if ($project->settings->deploy['allow_environment_pull_method_config']) {
-      $platform_node->git['pull_method'] = $form_state['values']['pull_method'];
+      $platform_node->git['pull_method'] = $form_state['values']['git']['platform_pull_method'];
     }
     else {
       $platform_node->git['pull_method'] = $project->settings->deploy['method'];
