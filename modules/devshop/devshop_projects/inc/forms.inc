@@ -832,6 +832,9 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   // Hide entire Git fieldset, the open up as needed.
   $form['git']['#group'] = 'environment_settings';
   $form['git']['#title'] = t('Deployment & Git');
+  $form['git']['git_ref']['#access'] = FALSE;
+  $form['git']['git_ref']['#default_value'] = '';
+  $form['git']['repo_url']['#access'] = FALSE;
 
   // Unset site git URL fields, for now.
   // @TODO: See about allowing site folder level git repos.
@@ -1219,6 +1222,7 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
   // Remove platform and profile options.
   // @TODO: Patch Aegir so we don't have to load all of these platform options.
   $form['platform']['#access'] = FALSE;
+  $form['git']['#access'] = FALSE;
   $form['profile']['#access'] = FALSE;
   
 }
