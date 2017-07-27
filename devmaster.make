@@ -26,12 +26,9 @@ projects[hosting][subdir] = "aegir"
 ; Aegir Core not included in hosting.module
 projects[eldir][type] = theme
 
+# @TODO: PIn this on next release of hosting_git.
 projects[hosting_git][subdir] = aegir
 projects[hosting_git][download][branch] = "2897894-git-hooks"
-projects[hosting_git][download][type] = "git"
-
-# @TODO: PIn this on next release of hosting_git.
-projects[hosting_git][download][branch] = "7.x-3.x"
 projects[hosting_git][download][type] = "git"
 
 projects[hosting_remote_import][subdir] = aegir
