@@ -154,8 +154,9 @@ Feature: Create a project
     Then print last drush output
 
     When I reload the page
-    When I click "Git pull Warning"
-    Then print last response
+# Tasks on CentOS were failing with a warning. Using these steps I found the issue to be missing date timezone setting.
+#    When I click "Git pull Warning"
+#    Then print last response
 
     Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-success" element
     And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-success" element
