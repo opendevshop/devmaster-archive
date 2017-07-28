@@ -157,3 +157,18 @@ Feature: Create a project
     When I reload the page
     Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-success" element
     And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-success" element
+
+    # Test Checkout
+    Given I click "live" in the "main" region
+    When I click "8.3.5" in the "main" region
+    Then I should see "Git Hooks"
+    And I should see "Update: Run database updates"
+    When I press "Git checkout"
+    Then I should see "Git checkout" in the "#drpl8-live .last-task-alert .alert-queued" element
+
+    # Run twice so platform and site verify tasks run
+    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    Then print last drush output
+
+    When I reload the page
+    Then I should see "Git checkout" in the "#drpl8-live .last-task-alert .alert-success" element
