@@ -146,7 +146,7 @@ Feature: Create a project
 
     Given I move backward one page
     When I reload the page
-    Then show last response
+    Then print last response
 
     Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-queued" element
     And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-queued" element
