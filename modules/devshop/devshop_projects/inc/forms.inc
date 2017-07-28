@@ -488,6 +488,11 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
         $node = node_load($form['nid']['#value']);
         drupal_set_title(t('Checkout code in Environment "@env"?', array('@env' => $node->environment->name)), PASS_THROUGH);
         $form['actions']['cancel']['#value'] = l(t('Cancel'), "node/{$node->project->nid}");
+
+        // Check project setting to access custom git hooks.
+        $custom_hooks_allowed = variable_get('hosting_git_allow_task_override_hooks', FALSE) && $node->project->settings->deploy['allow_environment_deploy_hooks_override'];
+        $form['parameters']['git_hooks']['#access'] = $custom_hooks_allowed;
+        $form['parameters']['hooks']['hooks_display']['#access'] = !$custom_hooks_allowed;
         break;
   
       // Git Pull
