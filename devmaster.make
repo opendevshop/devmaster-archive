@@ -2,7 +2,9 @@ core = 7.x
 api = 2
 
 projects[drupal][type] = "core"
-projects[drupal][version] = "7.54"
+
+# Has no affect. Change drupal core version in build-devmaster.make.
+# projects[drupal][version] = "7.54"
 
 defaults[projects][subdir] = "contrib"
 defaults[projects][type] = "module"
