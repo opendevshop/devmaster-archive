@@ -37,7 +37,9 @@ projects[hosting_site_backup_manager][subdir] = aegir
 projects[hosting_site_backup_manager][version] = "3.10"
 
 projects[hosting_tasks_extra][subdir] = aegir
-projects[hosting_tasks_extra][version] = "3.10"
+projects[hosting_tasks_extra][download][type] = "git"
+projects[hosting_tasks_extra][download][branch] = "7.x-3.x"
+
 
 projects[hosting_filemanager][subdir] = aegir
 projects[hosting_logs][subdir] = aegir
