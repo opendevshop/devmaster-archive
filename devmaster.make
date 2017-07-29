@@ -50,10 +50,18 @@ projects[aegir_ssh][subdir] = aegir
 projects[aegir_ssh][version] = 0.3
 projects[aegir_config][subdir] = aegir
 projects[aegir_config][version] = 1.x
+
 projects[aegir_ansible][subdir] = aegir
-projects[aegir_ansible][version] = 1.x
+projects[aegir_ansible][download][type] = "git"
+projects[aegir_ansible][download][branch] = "7.x-1.x"
+
 projects[aegir_cloud][subdir] = aegir
-projects[aegir_cloud][version] = 1.x
+projects[aegir_cloud][download][type] = "git"
+projects[aegir_cloud][download][branch] = "7.x-1.x"
+
+projects[hosting_docker][subdir] = aegir
+projects[hosting_docker][download][type] = "git"
+projects[hosting_docker][download][branch] = "7.x-3.x"
 
 ; Not working yet.
 ;projects[hosting_solr][version] = "1"
