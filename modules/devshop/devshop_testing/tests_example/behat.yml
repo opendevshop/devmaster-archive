@@ -6,8 +6,14 @@ default:
         - Drupal\DrupalExtension\Context\DrupalContext
         - Drupal\DrupalExtension\Context\MinkContext
         - Drupal\DrupalExtension\Context\MessageContext
+        
         - Drupal\DrupalExtension\Context\DrushContext
-  extensions:
+        # If you wish to capture screenshots and HTM assets, uncomment these lines.
+        # See https://github.com/DevinciHQ/devinci-behat-extension
+        # If you add this line, DevShop will set the asset_dump_path automatically.
+        #
+        # - Devinci\DevinciExtension\Context\DebugContext:
+        #      asset_dump_path: %paths.base%/../assets/
     Behat\MinkExtension:
       goutte: ~
       selenium2: ~
