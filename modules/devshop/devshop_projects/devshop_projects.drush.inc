@@ -314,8 +314,17 @@ function devshop_projects_post_hosting_delete_task($task, $data) {
   }
 }
 
-
 /**
+ * Implements hook_post_hosting_TASK_TYPE_task() for install.
+ */
+function devshop_projects_post_hosting_install_task($task, $data) {
+  
+  // Queue up a verification of the site.
+  hosting_add_task($task->ref->nid, 'verify');
+  
+}
+  
+  /**
  * Implements hook_post_hosting_TASK_TYPE_task() for devshop deploy tasks().
  */
 function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
@@ -342,6 +351,9 @@ function devshop_projects_post_hosting_devshop_deploy_task($task, $data) {
 
   // Queue up a verification of the platform.
   hosting_add_task($task->ref->environment->platform, 'verify');
+  
+  // Queue up a verification of the site.
+  hosting_add_task($task->ref->nid, 'verify');
   
   // Detect if new build is required and then do it.
   // @see drush_devshop_provision_provision_devshop_deploy()
