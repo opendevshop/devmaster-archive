@@ -531,6 +531,11 @@ function drush_devshop_provision_post_provision_install() {
   // Install Method: Clone
   // Sync from a drush alias.
   drush_log('Installing environment with method: ' . d()->install_method , 'devshop_log');
+
+  // @TODO: Make a site's project a "service" like d()->platform
+  $project_name = d()->project;
+  $project = d("@project_{$project_name}")->project;
+
   if (d()->install_method == 'clone') {
     drush_log(dt('Environment Clone initiated...'), 'devshop_log');
     $clone_source = d()->environment_settings['install_method']['clone_source'];
@@ -541,6 +546,16 @@ function drush_devshop_provision_post_provision_install() {
     }
     elseif (!empty($clone_source)) {
       $source = d()->environment_settings['install_method']['clone_source'];
+    }
+    // If clone source is empty, use github clone source or live environment
+    elseif (empty($clone_source) && !empty(d()->environment_settings['github_pull_request']) && isset($project['environments'][$project['settings']['github']['pull_request_environments_method']])) {
+      $environment = $project['settings']['github']['pull_request_environments_method'];
+      $source = $project['environments'][$environment]['drush_alias'];
+    }
+    // If clone source is empty, use github clone source or live environment
+    elseif (empty($clone_source) && isset($project['environments'][$project['settings']['live']['live_environment']])) {
+      $environment = $project['settings']['live']['live_environment'];
+      $source = $project['environments'][$environment]['system_alias'];
     }
     else {
       return drush_set_error('DEVSHOP_ERROR', dt('Install_method"clone_source" was not set.'));
