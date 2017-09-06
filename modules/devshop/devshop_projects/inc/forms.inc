@@ -1340,6 +1340,7 @@ function devshop_prepare_platform_node($project, $environment_name, $git_ref, $w
   
   // Append drupal_path to repo_path if there is one. If not, repo_path is publish_path.
   if ($project->drupal_path) {
+    $platform_node->git['repo_docroot'] = $project->drupal_path;
     $platform_node->publish_path = $platform_node->git['repo_path'] . '/' . $project->drupal_path;
   }
   else {
@@ -1347,7 +1348,6 @@ function devshop_prepare_platform_node($project, $environment_name, $git_ref, $w
   }
   return $platform_node;
 }
-
 
 /**
  * Validator for the "other profile" field.
