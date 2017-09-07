@@ -70,16 +70,16 @@ projects[libraries][version] = 2.3
 
 ; Hosting HTTPS with Let's Encrypt!
 ; @TODO: Update with a new alpha.
-projects[hosting_https][type] = module
-projects[hosting_https][download][type] = git
-projects[hosting_https][download][url] = https://gitlab.com/aegir/hosting_https.git
-projects[hosting_https][download][branch] = master
-projects[hosting_https][subdir] = "aegir"
+; projects[hosting_https][type] = module
+; projects[hosting_https][download][type] = git
+; projects[hosting_https][download][url] = https://gitlab.com/aegir/hosting_https.git
+; projects[hosting_https][download][branch] = master
+; projects[hosting_https][subdir] = "aegir"
 
 ; Dehydrated for LetsEncrypt.org
-libraries[dehydrated][download][type] = git
-libraries[dehydrated][download][url] = https://github.com/lukas2511/dehydrated
-libraries[dehydrated][destination] = modules/aegir/hosting_https/submodules/letsencrypt/drush/bin
+; libraries[dehydrated][download][type] = git
+; libraries[dehydrated][download][url] = https://github.com/lukas2511/dehydrated
+; libraries[dehydrated][destination] = modules/aegir/hosting_https/submodules/letsencrypt/drush/bin
 
 ; Timeago module
 projects[timeago][version] = 2.3
