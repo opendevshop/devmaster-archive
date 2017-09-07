@@ -32,7 +32,7 @@ projects[hosting_filemanager][subdir] = aegir
 projects[hosting_filemanager][version] = "1.x"
 
 projects[hosting_logs][subdir] = aegir
-projects[hosting_logs][version] = 3.2
+projects[hosting_logs][version] = 3.3
 
 projects[aegir_ssh][subdir] = aegir
 projects[aegir_ssh][version] = 1.0
