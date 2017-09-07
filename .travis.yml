@@ -6,6 +6,7 @@ sudo: required
 branches:
   only:
     - 1.x
+    - release-prep
 
 env:
   global:
