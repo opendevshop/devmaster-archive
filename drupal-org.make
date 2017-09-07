@@ -1,21 +1,12 @@
 core = 7.x
 api = 2
 
-projects[drupal][type] = "core"
-
-# This is not used when building the distribution. See https://github.com/opendevshop/devshop/blob/1.x/build-devmaster.make
-# projects[drupal][version] = "7.54"
-
 defaults[projects][subdir] = "contrib"
 defaults[projects][type] = "module"
 
 # Update this with each new release of devshop
 projects[devshop_stats][version] = "1.x"
 projects[devshop_stats][subdir] = "contrib"
-
-; this makefile will make sure we get the development code from the
-; aegir modules instead of the tagged releases
-includes[devshop] = "drupal-org.make"
 
 ; Aegir Modules
 ; For development, use latest branch.
