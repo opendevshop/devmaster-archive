@@ -50,13 +50,13 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
     drush_log(dt('Updates to !branch detected. New Build is required.', array(
       '!branch' => $git_ref,
     )), 'devshop_log');
-    
+
     // Set option for hosting_git.drush.inc to detect in a post verify hook.
     drush_set_option('new_build_required', TRUE, 'site');
-    
+
     return;
   }
-  
+
   $project_name = d()->project;
   $project = (object) d("@project_{$project_name}")->project;
   $environment = (object) $project->environments[d()->environment];
@@ -68,20 +68,19 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
     // $git->command('stash');
 
     // Fetch
-    $git_fetch_output = devshop_drush_process("git fetch --all", d()->platform->repo_path, dt('DevShop Deploy'));
+    $git_fetch_output = devshop_process("git fetch --all", d()->platform->repo_path, dt('DevShop Deploy'));
 
     // Checkout the chosen ref
-    $git_checkout_output = devshop_drush_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
+    $git_checkout_output = devshop_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
 
     // Run Git Pull
     if ($desired_ref_type == 'branch') {
 
-      $git_pull_output = devshop_drush_process("git pull", d()->platform->repo_path, dt('DevShop Deploy'));
-
-      devshop_drush_process("git submodule update --init --recursive --force ",  d()->platform->repo_path, dt('DevShop Deploy'));
+      $git_pull_output = devshop_process("git pull", d()->platform->repo_path, dt('DevShop Deploy'));
+      devshop_process("git submodule update --init --recursive --force ", d()->platform->repo_path, dt('DevShop Deploy'));
     }
 
-    devshop_drush_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
+    devshop_process("git status",  d()->platform->repo_path, dt('DevShop Deploy'));
 }
 
 /**
@@ -94,7 +93,7 @@ function drush_devshop_provision_post_provision_devshop_deploy($git_ref = '') {
     drush_log(dt('Skipping post-deploy hooks.'), 'devshop_log');
     return;
   }
-  
+
   // Get post deploy options
   $revert = drush_get_option('revert');
   $update = drush_get_option('update');
@@ -158,7 +157,7 @@ function drush_devshop_provision_post_provision_devshop_deploy($git_ref = '') {
   }
 
   foreach ($commands as $command) {
-    devshop_drush_process($command, d()->platform->repo_path, 'DevShop Deploy Hook');
+    devshop_process($command, d()->platform->repo_path, 'DevShop Deploy Hook');
   }
 }
 
