@@ -57,6 +57,9 @@ projects[aegir_ansible][version] = 1.x
 projects[aegir_cloud][subdir] = aegir
 projects[aegir_cloud][version] = 1.x
 
+projects[hosting_docker][subdir] = aegir
+projects[hosting_docker][version] = 1.x
+
 ; Not working yet.
 ;projects[hosting_solr][version] = "1"
 
