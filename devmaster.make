@@ -12,4 +12,4 @@ includes[devmaster] = drupal-org.make
 ;; DEVELOPMENT
 ;; Includes clones of all modules.
 ;; Comment this out for release.
-includes[development] = devmaster.development.make.yml
+; Removed for release. 
