@@ -102,16 +102,16 @@ function devshop_provision_provision_drupal_config($uri, $data, $config = NULL) 
   return <<<PHP
 
   # This site's devshop project name and environment name.
-  \$_SERVER['DEVSHOP_ENVIRONMENT'] = '{$environment->name}';
-  \$_SERVER['DEVSHOP_PROJECT'] = '{$project->name}';
+  \$_SERVER['DEVSHOP_ENVIRONMENT'] = '{$environment}';
+  \$_SERVER['DEVSHOP_PROJECT'] = '{$project}';
 
   # Include devshop environment configuration settings, if there is any.
   if (file_exists(__DIR__ . '/../all/settings.devshop.php')) {
-    include_once(__DIR__ . '/../all/settings.devshop.php');
+    include(__DIR__ . '/../all/settings.devshop.php');
   }
 
   if (file_exists(__DIR__ . '/../default/settings.devshop.php')) {
-    include_once(__DIR__ . '/../default/settings.devshop.php');
+    include(__DIR__ . '/../default/settings.devshop.php');
   }
 
 PHP;
@@ -503,20 +503,6 @@ function drush_devshop_provision_pre_provision_deploy() {
  */
 function drush_devshop_provision_pre_provision_verify() {
   if (d()->type === 'project' || (!empty(d()->project) && d()->type === 'site' || d()->type === 'platform')) {
-    
-    if (d()->type == 'site' || d()->type == 'platform') {
-      $project_context = 'project_' . d()->project;
-      $drush_aliases = new Provision_Config_ProjectAliases(d($project_context)->name, d($project_context)->project);
-    }
-    else {
-      $drush_aliases = new Provision_Config_ProjectAliases(d()->name, d()->project);
-    }
-
-    // Only write drush aliases if project name was found.
-    if (!empty($drush_aliases->data['name'])) {
-      $drush_aliases->write();
-      drush_log(dt('Project Drush aliases written.'), 'devshop_log');
-    }
 
   }
 }
