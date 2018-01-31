@@ -263,6 +263,14 @@ function devmaster_task_finalize() {
   // Force things to delete even if things fail.
   variable_set('hosting_delete_force', 1);
 
+  // Only allow platforms to be deployed from git.
+  variable_set('hosting_git_allow_deploy_platform', 1);
+  variable_set('hosting_git_allow_deploy_site', 0);
+
+  // Only allow git hooks on sites.
+  variable_set('hosting_git_allow_hooks_platform', 0);
+  variable_set('hosting_git_allow_hooks_site', 1);
+
   // Make sure blocks are setup properly.
 //  _block_rehash();
 
