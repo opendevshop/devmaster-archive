@@ -752,7 +752,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   );
 
   // On site create page, use devshop_projects_create_environment_form()
-  if (arg(1) == 'add') {
+  if (arg(1) == 'add' && arg(3)) {
     devshop_projects_create_environment_form($form, $form_state, $form_id);
 
     $project = devshop_projects_load_by_name(arg(3));
@@ -847,7 +847,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   $form['http_basic_auth']['#group'] = 'environment_settings';
   $form['http_basic_auth']['#title'] = t('Password Protection');
   $form['hosting_logs']['#group'] = 'environment_settings';
-  
+
   // Have to add new element for Domains because of the way drupal ajax callback works.
   $form['domains'] = array(
     '#title' => t('Domain Names'),
