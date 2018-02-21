@@ -63,7 +63,7 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
   $form['project']['codebase']['drupal_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to Drupal'),
-    '#description' => t('Enter the relative path to the index.php file in your repository. Leave blank if index.php is in the root. If using a makefile, this is the path where Drupal will be built.'),
+    '#description' => t('Enter the relative path to the index.php file in your repository. Leave blank if index.php is in the root.'),
     '#size' => 40,
     '#default_value' => $project->drupal_path,
     '#maxlength' => 255,
@@ -73,20 +73,21 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
       'drupal_path',
     ),
   );
-  $form['project']['codebase']['makefile_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path to Makefile'),
-    '#description' => t('Enter the relative path to a makefile inside your repository. Leave blank if a full Drupal codebasee is in the repository.'),
-    '#size' => 40,
-    '#default_value' => $project->settings->makefile_path,
-    '#maxlength' => 255,
-    '#weight' => 4,
-    '#parents' => array(
-      'project',
-      'settings',
-      'makefile_path',
-    ),
-  );
+// This was accidentally merged from the makefiles branch.
+//  $form['project']['codebase']['makefile_path'] = array(
+//    '#type' => 'textfield',
+//    '#title' => t('Path to Makefile'),
+//    '#description' => t('Enter the relative path to a makefile inside your repository. Leave blank if a full Drupal codebasee is in the repository.'),
+//    '#size' => 40,
+//    '#default_value' => $project->settings->makefile_path,
+//    '#maxlength' => 255,
+//    '#weight' => 4,
+//    '#parents' => array(
+//      'project',
+//      'settings',
+//      'makefile_path',
+//    ),
+//  );
   $form['project']['codebase']['base_url'] = array(
     '#type' => 'textfield',
     '#title' => t('Environment Domain Name Pattern'),
@@ -486,7 +487,7 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
             '#weight' => '-1',
           );
 
-          foreach ($form['parameters'] as $key => &$element) {
+          foreach ($form['parameters'] as $key => $element) {
             if (is_int($key)) {
               // Don't unset the target platform. Just hide it.
               if (isset($element['target_platform']['#default_value'])) {
@@ -787,26 +788,6 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     );
   }
 
-  //
-//  // Get the node object for this form.
-//  $node = $form['#node'];
-//
-//  // Look for #project (like on node create form)
-//  if ($node->project) {
-//    $project = $node->project;
-//  } elseif (isset($form['#project'])) {
-//    $project = $form['#project'];
-//  }
-//  else {
-//    return;
-//  }
-//
-//  // If this site is in a project and we are on it's node/%/edit page, send to special environments form.
-//  if (!empty($project) && arg(1) == $node->nid) {
-//    drupal_goto("node/{$project->nid}/edit/env/{$node->environment->name}");
-//    exit;
-//  }
-
   // User-configurable Settings
   $form['environment']['settings'] = array(
       '#type' => 'fieldset',
@@ -845,12 +826,18 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   $form['http_basic_auth']['#group'] = 'environment_settings';
   $form['http_basic_auth']['#title'] = t('Password Protection');
   $form['hosting_logs']['#group'] = 'environment_settings';
-
-  $form['aliases_wrapper']['#group'] = 'environment_settings';
-  $form['aliases_wrapper']['#title'] = t('Domain Names');
-  $form['aliases_wrapper']['#prefix'] = '';
-  $form['aliases_wrapper']['#suffix'] = '';
-
+  
+  // Have to add new element for Domains because of the way drupal ajax callback works.
+  $form['domains'] = array(
+    '#title' => t('Domain Names'),
+    '#type' => 'fieldset',
+    '#group' => 'environment_settings',
+  );
+  $form['domains']['aliases_wrapper'] = $form['aliases_wrapper'];
+  $form['domains']['aliases_wrapper']['#type'] = 'container';
+  $form['domains']['aliases_wrapper']['add_alias']['#ajax']['callback'] = 'devshop_hosting_alias_add_alias_callback';
+  unset($form['aliases_wrapper']);
+  
   $form['environment']['settings']['client'] = $form['client'];
   $form['environment']['settings']['client']['#tree'] = FALSE;
   unset($form['client']);
@@ -963,6 +950,15 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     }
   }
 }
+
+
+/**
+ * Ajax callback for returning "Add Alias" form element, since we moved ours to a sub fieldset.
+ */
+function devshop_hosting_alias_add_alias_callback($form, $form_state) {
+  return $form['domains']['aliases_wrapper'];
+}
+
 
 /**
  * Form alters for "site_node_form", which is our "Create Environment" form.
@@ -1693,7 +1689,7 @@ function devshop_projects_environment_settings_submit($form, &$form_state) {
   // Save environment record.
   // If environment already exists, set primary keys.
   $project = node_load($environment->project_nid);
-  if (isset($project->environments[$environment->name])) {
+  if (isset($project->project->environments[$environment->name])) {
     $primary_keys = array('project_nid', 'name');
   }
   else {
@@ -1707,7 +1703,7 @@ function devshop_projects_environment_settings_submit($form, &$form_state) {
 
     // Send our own message
     if (!empty($primary_keys)) {
-      drupal_set_message(t('Environment settings saved for %env in project %project.', array('%env' => $environment->name, '%project' => $project->project_name)));
+      drupal_set_message(t('Settings saved for environment !env.', array('!env' => l($environment->name, "node/{$environment->site}"))));
     }
     else {
       drupal_set_message(t('Environment !env created in project %project.', array(

@@ -83,16 +83,16 @@ function devshop_provision_provision_drupal_config($uri, $data, $config = NULL) 
   return <<<PHP
 
   # This site's devshop project name and environment name.
-  \$_SERVER['DEVSHOP_ENVIRONMENT'] = '{$environment->name}';
-  \$_SERVER['DEVSHOP_PROJECT'] = '{$project->name}';
+  \$_SERVER['DEVSHOP_ENVIRONMENT'] = '{$environment}';
+  \$_SERVER['DEVSHOP_PROJECT'] = '{$project}';
 
   # Include devshop environment configuration settings, if there is any.
   if (file_exists(__DIR__ . '/../all/settings.devshop.php')) {
-    include_once(__DIR__ . '/../all/settings.devshop.php');
+    include(__DIR__ . '/../all/settings.devshop.php');
   }
 
   if (file_exists(__DIR__ . '/../default/settings.devshop.php')) {
-    include_once(__DIR__ . '/../default/settings.devshop.php');
+    include(__DIR__ . '/../default/settings.devshop.php');
   }
 
 PHP;
@@ -217,7 +217,7 @@ function drush_devshop_provision_pre_updatedb() {
 /**
  * Run a Symfony Process saving to drush logs.
  */
-function devshop_drush_process($command, $cwd = null, $label = 'Process', $env = array(), $log_output = TRUE, $error_message = 'Process Failed') {
+function devshop_process($command, $cwd = null, $label = 'Process', $env = array(), $log_output = TRUE, $error_message = 'Process Failed') {
   drush_log("[$label] $command", 'devshop_command');
 
   // Merge in env vars, inheriting the CLI's
@@ -476,20 +476,6 @@ function devshop_fqdn($host = NULL) {
  */
 function drush_devshop_provision_pre_provision_verify() {
   if (d()->type === 'project' || (!empty(d()->project) && d()->type === 'site' || d()->type === 'platform')) {
-    
-    if (d()->type == 'site' || d()->type == 'platform') {
-      $project_context = 'project_' . d()->project;
-      $drush_aliases = new Provision_Config_ProjectAliases(d($project_context)->name, d($project_context)->project);
-    }
-    else {
-      $drush_aliases = new Provision_Config_ProjectAliases(d()->name, d()->project);
-    }
-
-    // Only write drush aliases if project name was found.
-    if (!empty($drush_aliases->data['name'])) {
-      $drush_aliases->write();
-      drush_log(dt('Project Drush aliases written.'), 'devshop_log');
-    }
 
   }
 }
@@ -521,8 +507,8 @@ function drush_devshop_provision_post_provision_install() {
 
     $destination = d()->name;
     $command = "drush provision-sync $source $destination --database --files --update-uri --disable-rollback-backup --updatedb --cache-clear --registry-rebuild";
-    devshop_drush_process($command, NULL, 'Cloning site from ' . d($source)->uri);
-    devshop_drush_process('drush cc drush', NULL, 'Clearing drush caches');
+    devshop_process($command, NULL, 'Cloning site from ' . d($source)->uri);
+    devshop_process('drush cc drush', NULL, 'Clearing drush caches');
 //    devshop_drush_process_cache_clear($destination);
   }
 
@@ -539,7 +525,7 @@ function drush_devshop_provision_post_provision_install() {
       $temp_file_name = tempnam('/tmp', 'devshop_remote_db.sql.');
       $db_name = ltrim($url['path'], '/');
       $command = "mysqldump -u{$url['user']} -p{$url['pass']} -h{$url['host']} {$db_name}  --result-file={$temp_file_name}";
-      devshop_drush_process($command, NULL, dt('Saving database file...'));
+      devshop_process($command, NULL, dt('Saving database file...'));
 
       $file_to_import = $temp_file_name;
     }
@@ -557,10 +543,10 @@ function drush_devshop_provision_post_provision_install() {
     // Import the file
     $alias = d()->name;
     $command = "drush {$alias} sqlq 'SOURCE {$file_to_import}'";
-    devshop_drush_process($command, NULL, dt('Importing database file...'));
-    devshop_drush_process('drush cc drush', NULL, 'Clearing drush caches');
+    devshop_process($command, NULL, dt('Importing database file...'));
+    devshop_process('drush cc drush', NULL, 'Clearing drush caches');
     devshop_drush_process_cache_clear($alias);
-    devshop_drush_process("drush {$alias} sqlq 'SHOW TABLES'", NULL, dt('Show Tables'));
+    devshop_process("drush {$alias} sqlq 'SHOW TABLES'", NULL, dt('Show Tables'));
   }
 }
 
@@ -574,9 +560,9 @@ function devshop_drush_process_cache_clear($alias) {
 
   // Clear all caches.
   if (drush_drupal_major_version(d()->root) == 8) {
-    devshop_drush_process("drush {$alias} cache-rebuild", NULL, dt('Clear all Caches'));
+    devshop_process("drush {$alias} cache-rebuild", NULL, dt('Clear all Caches'));
   }
   else {
-    devshop_drush_process("drush {$alias} cache-clear all", NULL, dt('Clear all Caches'));
+    devshop_process("drush {$alias} cache-clear all", NULL, dt('Clear all Caches'));
   }
 }
