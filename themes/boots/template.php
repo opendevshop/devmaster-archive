@@ -43,9 +43,9 @@ function boots_preprocess_environment(&$vars) {
   // Load git refs and create links
   $vars['git_refs'] = array();
   foreach ($project->settings->git['refs'] as $ref => $type) {
-    $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
+    $href = url('hosting_confirm/ENV_NID/platform_git-checkout', array(
         'query' => array(
-            'git_ref' => $ref,
+            'checkout_git_ref' => $ref,
         )
     ));
     $icon = $type == 'tag' ? 'tag' : 'code-fork';
@@ -57,7 +57,7 @@ function boots_preprocess_environment(&$vars) {
   }
 
   // Look for all available source environments
-  foreach ($vars['project']->environments as &$source_environment) {
+  foreach ($vars['project']->environments as $source_environment) {
     if ($source_environment->site) {
       $vars['source_environments'][$source_environment->name] = $source_environment;
     }
@@ -183,7 +183,7 @@ function boots_preprocess_environment(&$vars) {
 
   // Determine Environment State. Only one of these may be active at a time.
   // State: Site install failed.
-  if (current($environment->tasks['install'])->task_status == HOSTING_TASK_ERROR) {
+  if (isset($environment->tasks['install']) && current($environment->tasks['install'])->task_status == HOSTING_TASK_ERROR) {
     $install_task = current($environment->tasks['install']);
     $buttons = l(
       '<i class="fa fa-refresh"></i> ' . t('Retry'),
@@ -811,23 +811,6 @@ function boots_preprocess_node_project(&$vars){
       $vars['deploy_label'] =  t('Branches refreshing.  Please wait.');
     }
   }
-  else {
-    $vars['deploy_label'] = t('Deploy a tag or branch');
-
-    foreach ($node->project->settings->git['refs'] as $ref => $type){
-      $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
-        'query' =>array(
-          'git_ref' => $ref,
-        )
-      ));
-      $icon = $type == 'tag'? 'tag': 'code-fork';
-
-      $vars['git_refs'][$ref] = "<a href='$href'>
-        <i class='fa fa-$icon'></i>
-        $ref
-      </a>";
-    }
-  }
 
   // Get available servers
   $vars['web_servers'] = hosting_get_servers('http');
@@ -897,6 +880,7 @@ function boots_preprocess_node_project(&$vars){
 
   $url =  $node->project->webhook_url;
   $project_name = $node->title;
+  $visit_text = t('Visit Webhook');
 
   // Only show the webhook url to those who can create projects.
   if (user_access('create project')) {
@@ -933,6 +917,8 @@ data-target="#webhook-modal" title="Webhook URL">
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    
+                    <a href="$url" target="_blank" class="btn btn-text pull-left">$visit_text</a>
                   </div>
                 </div>
               </div>
@@ -948,7 +934,7 @@ HTML;
   $vars['target_environments'] = $project->environments;
 
   // Prepare environments output
-  foreach ($vars['node']->project->environments as &$environment) {
+  foreach ($vars['node']->project->environments as $environment) {
 
     // Render each environment.
     $vars['environments'][] = theme('environment', array(

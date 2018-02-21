@@ -1,14 +1,13 @@
 DevShop Pull
 ============
 
-Provides a way for environments to stay up to date with the git repository.
+Provides a single webhook for each project.
 
-Each project can configure to Pull on Queue or Pull on URL Callback.
+This module now integrates with Hosting Git Pull.
 
-Pull on Queue will trigger Pull Code tasks on a regular basis using Hosting
-Queues.  Pull on URL Callback provides a URL that you can add to your git host
-to ping on receiving a commit.
+Hosting Git Pull provides a unique webhook URL for each platform & site.  This would require a new webhook to be added to the git repository for each individual environment.
 
+Instead, this module provides a webhook callback for the entire project, and then kicks off hosting_git_pull's code for the rest.
 
 GitHub Setup
 ------------

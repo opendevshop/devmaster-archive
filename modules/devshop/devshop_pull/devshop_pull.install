@@ -1,45 +1,7 @@
 <?php
 /**
  * @file
- *   Install, update and uninstall for Devshop Queues.
  */
-
-/**
- * Implements hook_schema().
- */
-function devshop_pull_schema() {
-  $schema['hosting_devshop_pull_projects'] = array(
-    'fields' => array(
-      'project_nid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'pull_method' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'last_pull' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'last_pull_status' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'last_pull_ip' => array(
-        'type' => 'varchar',
-        'length' => 15,
-        'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array('project_nid'),
-  );
-  return $schema;
-}
 
 /**
  * no-op: code fixed in devshop_pull_update_6201()
@@ -65,3 +27,37 @@ function devshop_pull_update_6002() {
   db_drop_table($ret, 'hosting_devshop_pull_platforms');
   return $ret;
 }
+
+/**
+ * Remove legacy `hosting_devshop_pull_projects` table.
+ */
+function devshop_pull_update_7000() {
+  $ret = array();
+  db_drop_table($ret, 'hosting_devshop_pull_projects');
+  return $ret;
+}
+
+/**
+ * @TODO:
+ *
+ * Convert project settings from "deploy_method" to "pull_method", and save all environment platform settings according to project "deploy_method".
+ */
+//function devshop_pull_update_7001() {
+//
+//  $environments = db_query('SELECT * FROM {hosting_devshop_project_environment} e LEFT JOIN {hosting_devshop_project} p ON p.nid = e.project_nid');
+//  foreach ($environments as $environment) {
+//
+//    // If first time loading the project, update project settings.
+//    if (!isset($projects[$environment->project_nid])) {
+//      $projects[$environment->project_nid] = $project = node_load($environment->project_nid);
+//
+////      $project->settings->deploy['method'] =
+//
+//
+//    }
+//
+//    //
+//  }
+//
+//
+//}

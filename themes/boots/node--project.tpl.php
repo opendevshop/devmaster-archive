@@ -120,7 +120,7 @@
             <span class="text-danger">
               <i class="fa fa-warning"></i> <?php print t('Access Denied'); ?>
             </span>
-            <a href="<?php print url('admin/devshop/pull')?>">
+            <a href="<?php print url('admin/hosting/git')?>">
               <?php print t('Configure Webhook Access'); ?>
             </a>
           <?php else: ?>
@@ -142,7 +142,7 @@
     </li>
 
     <!-- Webhook -->
-    <?php if ($project->settings->deploy['method'] == 'webhook'):
+    <?php if ($project->settings->deploy['method'] == HOSTING_GIT_PULL_CALLBACK):
 
         $float = empty($project->settings->deploy['last_webhook'])? 'inline': 'pull-right';
       ?>

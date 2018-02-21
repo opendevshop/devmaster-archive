@@ -133,6 +133,13 @@ function devshop_projects_node_load($nodes, $types) {
         $node->profile_name = $node->environment->settings->install_method['profile'];
       }
     }
+    elseif ($node->type == 'platform') {
+      
+      // If overriding pull method is not allowed, force platform to load with project's pull method.
+      if (isset($node->project) && !$node->project->settings->deploy['allow_environment_pull_method_config']) {
+        $node->git['pull_method'] = $node->project->settings->deploy['method'];
+      }
+    }
   }
 }
 

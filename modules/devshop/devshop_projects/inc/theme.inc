@@ -190,9 +190,8 @@ function devshop_projects_preprocess_node(&$vars) {
     $messages = devshop_task_get_messages($vars['node']);
     $vars['messages'] = implode("\n", $messages);
     switch ($vars['task_type']) {
-      case 'devshop-deploy':
-        $vars['type'] = 'Deploy';
-        break;
+      case 'git-pull':
+      case 'git-checkout':
       case 'verify':
       case 'test':
       case 'sync':
@@ -467,7 +466,11 @@ function theme_devshop_ascii($vars) {
   $output = $converter->convert($string);
   
   // Make URLs clickable:
-  $output = _filter_url($output);
+  $filter = new stdClass();
+  $filter->settings = [
+    'filter_url_length' => 1000,
+  ];
+  $output = _filter_url($output, $filter);
   
   // Change linebreaks to <br> tags.
   $output = strtr($output, array(
