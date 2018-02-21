@@ -201,56 +201,20 @@ function devshop_projects_form_project_node_form_alter(&$form, &$form_state, $fo
     '#group' => 'project_settings',
   );
 
-  $form['project']['settings']['deploy']['method'] = array(
-    '#title' => 'Deploy Code Method',
-    '#type' => 'radios',
-    '#description' => t('Choose the method used to deploy code to the server.'),
-    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : 'webhook',
+  $form['project']['settings']['deploy']['allow_environment_pull_method_config'] = array(
+    '#title' => t('Allow environments to configure Git Pull Method'),
+    '#type' => 'checkbox',
+    '#description' => t('If checked, each environment can choose a different git pull method individually.'),
+    '#default_value' => $project->settings->deploy['allow_environment_pull_method_config'],
   );
-
-  // Commit Webhook
-  $form['project']['settings']['deploy']['method']['#options']['webhook'] = t('Immediate Deployment');
-  $form['project']['settings']['deploy']['method']['#options']['webhook'] .= '<div class="description">' . t('Recommended. Deploy code as it is delivered to your repository.') . ' <em>' . t('Requires setting up a webhook with your git repository host.') . '</em>' . '</div>';
-
-  // Queue
-  $queues = hosting_get_queues();
-  if ($queues['pull']['enabled']) {
-    $form['project']['settings']['deploy']['method']['#options']['queue'] = t('Queued Deployment');
-
-    $t = array();
-    $t['@freq'] = format_interval($queues['pull']['frequency'], 1);
-
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= '<div class="description">';
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= t('Git pull code every @freq. Use only if repository webhooks are not available.', $t);
-
-
-    if (user_access('administer hosting queues')) {
-      $form['project']['settings']['deploy']['method']['#options']['queue'] .= ' ' . l(t("Pull Queue configured to run every @freq.", $t), 'admin/hosting/queues');
-    }
-    else {
-      $form['project']['settings']['deploy']['method']['#options']['queue'] .= ' ' . t("Pull Queue configured to run every @freq.", $t);
-    }
-
-    $form['project']['settings']['deploy']['method']['#options']['queue'] .= '</div>';
-
-  }
-
-  // Manual Pull
-  $form['project']['settings']['deploy']['method']['#options']['manual'] = t('Manual Deployment');
-  $form['project']['settings']['deploy']['method']['#options']['manual'] .= '<div class="description">' . t('Deploy code to servers manually via devshop or drush.');
-
-  $form['project']['settings']['deploy']['method']['#options']['manual'] .= ' <em>' . t('Not recommended. All environments must be manually updated.') . '</em>' . '</div>';
-
-  // Add link to hosting queues admin if the user can access them.
-  if (!$queues['deploy']['enabled'] && user_access('administer hosting queues')) {
-    $form['project']['settings']['deploy']['queue_admin'] = array(
-      '#value' => t('The !link is disabled. Enable it to allow projects to pull code in the queue.', array(
-        '!link' => l(t('Pull Queue'), 'admin/hosting/queues'),
-      )),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    );
-  }
+  
+  $options = hosting_git_pull_method_options();
+  $form['project']['settings']['deploy']['method'] = array(
+    '#title' => t('Default Git Pull Method'),
+    '#type' => 'radios',
+    '#default_value' => isset($project->settings->deploy['method']) ? $project->settings->deploy['method'] : HOSTING_GIT_PULL_CALLBACK,
+    '#options' => $options,
+  );
 
   // Load deploy hooks form element.
   $form['project']['settings']['deploy']['default_hooks'] = devshop_environment_deploy_hooks_form($project);
@@ -547,12 +511,22 @@ function devshop_projects_form_alter(&$form, &$form_state, $form_id) {
         }
         break;
 
-      // Deploy task form
-      case 'devshop-deploy':
-
-        // Alter title of deploy task.
+      // Git Checkout
+      case 'git-checkout':
         $node = node_load($form['nid']['#value']);
-        drupal_set_title(t('Deploy code to Environment "@env"', array('@env' => $node->environment->name)), PASS_THROUGH);
+        drupal_set_title(t('Checkout code in Environment "@env"?', array('@env' => $node->environment->name)), PASS_THROUGH);
+        $form['actions']['cancel']['#value'] = l(t('Cancel'), "node/{$node->project->nid}");
+
+        // Check project setting to access custom git hooks.
+        $custom_hooks_allowed = variable_get('hosting_git_allow_task_override_hooks', FALSE) && $node->project->settings->deploy['allow_environment_deploy_hooks_override'];
+        $form['parameters']['git_hooks']['#access'] = $custom_hooks_allowed;
+        $form['parameters']['hooks']['hooks_display']['#access'] = !$custom_hooks_allowed;
+        break;
+  
+      // Git Pull
+      case 'git-pull':
+        $node = node_load($form['nid']['#value']);
+        drupal_set_title(t('Pull code to Environment "@env"?', array('@env' => $node->environment->name)), PASS_THROUGH);
         $form['actions']['cancel']['#value'] = l(t('Cancel'), "node/{$node->project->nid}");
         break;
 
@@ -704,7 +678,6 @@ HTML;
     if (isset($platform_node->project)) {
       // Hide makefile
       $form['frommakefile']['#access'] = FALSE;
-      $form['git']['pull_url']['#access'] = FALSE;
     }
 
     // If switching webservers...
@@ -758,12 +731,18 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
     '#weight' => -9,
     '#tree' => true,
   );
-
+  
+  $form['platform_node'] = array(
+    '#type' => 'value',
+    '#value' => NULL,
+  );
+  
   // On site create page, use devshop_projects_create_environment_form()
   if (arg(1) == 'add') {
     devshop_projects_create_environment_form($form, $form_state, $form_id);
 
-    $project = devshop_projects_load_by_name(arg(3));
+    $project_node = devshop_projects_load_by_name(arg(3));
+    $project = $project_node->project;
   }
 
   // Only act on site nodes that are in projects.
@@ -838,7 +817,7 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   );
 
   // Load deploy hooks form element.
-  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, $environment);
+//  $form['environment']['settings']['deploy'] = devshop_environment_deploy_hooks_form($project, isset($environment)? $environment: NULL);
 
   // UX Improvements
   // Project Settings Vertical Tabs
@@ -899,6 +878,85 @@ function devshop_projects_form_site_node_form_alter(&$form, &$form_state, $form_
   // Add our own submit handler.
   $form['actions']['submit']['#submit'][] = 'devshop_projects_environment_settings_submit';
 
+  // Hide entire Git fieldset, the open up as needed.
+  $form['git']['#group'] = 'environment_settings';
+  $form['git']['#title'] = t('Deployment & Git');
+  $form['git']['git_ref']['#access'] = FALSE;
+  $form['git']['git_ref']['#default_value'] = '';
+  $form['git']['repo_url']['#access'] = FALSE;
+
+  // Unset site git URL fields, for now.
+  // @TODO: See about allowing site folder level git repos.
+
+  // Show custom deploy method (@TODO: and git URL) fields
+  $options = hosting_git_pull_method_options();
+  if ($project->settings->deploy['allow_environment_pull_method_config']) {
+    
+    // So set the default pull method.
+    if (isset($node->platform) && $platform = node_load($node->platform)) {
+      $default = $platform->git['pull_method'];
+    }
+    else {
+      $default = $project->settings->deploy['method'];
+    }
+    $form['git']['platform_pull_method'] = array(
+      '#title' => t('Git Pull Method'),
+      '#type' => 'radios',
+      '#default_value' => $default,
+      '#options' => $options,
+      '#element_validate' => array(
+        'devshop_projects_site_form_validate_platform_pull_method'
+      ),
+    );
+  }
+
+  // Display current pull method, as long as there is a valid platform.
+  elseif (isset($node->platform) && $platform = node_load($node->platform)) {
+    $form['git']['platform_pull_method']['#title'] = t('Git Pull Method');
+    $form['git']['platform_pull_method']['#type'] = 'item';
+    $form['git']['platform_pull_method']['#markup'] =  $options[$platform->git['pull_method']];
+
+    // Show a link or a explanation, depending on the user's access.
+    if (drupal_valid_path("node/{$project->nid}/edit")) {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method see !project_link.', array(
+        '!project_link' => l(t('Project Settings'), "node/{$project->nid}/edit", array(
+          'fragment' => 'edit-project-settings-deploy'
+        ))
+      ));
+    }
+    else {
+      $form['git']['platform_pull_method']['#description'] .= t('To change the Git Pull Method, ask an administrator to adjust the Project Settings.');
+    }
+  }
+
+  // Remove site pull method and pull url for now.
+  $form['git']['#access'] = TRUE;
+  $form['git']['pull_method']['#access'] = FALSE;
+  $form['git']['pull_url']['#access'] = FALSE;
+  $form['git']['#description'] = '';
+
+  // Block access to hooks, show config instead.
+  if (!$project->settings->deploy['allow_environment_deploy_config']) {
+    $hooks = module_invoke_all('hosting_git_hooks');
+    foreach ($hooks as $name => $hook) {
+      $name = ucfirst($name);
+      $items[] = "<label>$name:</label> " . $hook['description'];
+    }
+    $form['git']['git_hooks']['#type'] = 'item';
+    $form['git']['git_hooks']['#markup'] = theme('item_list', array('items' => $items));
+
+    // Show a link or a explanation, depending on the user's access.
+    if (drupal_valid_path("node/{$project->nid}/edit")) {
+      $form['git']['git_hooks']['#description'] .= t('To change the Git Hooks see !project_link.', array(
+        '!project_link' => l(t('Project Settings'), "node/{$project->nid}/edit", array(
+          'fragment' => 'edit-project-settings-deploy'
+        ))
+      ));
+    }
+    else {
+      $form['git']['git_hooks']['#description'] .= t('To change the Git Hooks, ask an administrator to adjust the Project Settings.');
+    }
+  }
 }
 
 
@@ -1218,18 +1276,13 @@ function devshop_projects_create_environment_form(&$form, &$form_state, $form_id
     '#value' => $project->nid,
     '#type' => 'value',
   );
-
-  $form['platform_node'] = array(
-    '#type' => 'value',
-    '#value' => NULL,
-  );
-
-
+  
   // Remove platform and profile options.
   // @TODO: Patch Aegir so we don't have to load all of these platform options.
   $form['platform']['#access'] = FALSE;
-  $form['profile']['#access'] = FALSE;
   $form['git']['#access'] = FALSE;
+  $form['profile']['#access'] = FALSE;
+  
 }
 
 /**
@@ -1256,15 +1309,36 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
 
     // Generate field prefix and suffix using domain name pattern.
     form_set_value($form['title'], devshop_environment_url($project, $element['#value']), $form_state);
-
+    form_set_value($form['profile'], 0, $form_state);
+    form_set_value($form['platform'], 0, $form_state);
+  
     // Attach a new platform node.
     $platform_node = devshop_prepare_platform_node($project, $element['#value'], $form_state['values']['git_ref'], $form_state['values']['web_server']);
 
     // Set value in form_state.
     form_set_value($form['platform_node'], $platform_node, $form_state);
-    form_set_value($form['profile'], 0, $form_state);
-    form_set_value($form['platform'], 0, $form_state);
+  }
+}
 
+/**
+ * Validator for the domain name field: Sets domain according to pattern.
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function devshop_projects_site_form_validate_platform_pull_method($element, &$form_state, $form) {
+  
+  // Only work on Update site. Insert site is handled above.
+  if (!empty($form_state['node']->nid) && !empty($form_state['values']['platform'])) {
+  
+    // Load platform node to set as value.
+    $platform_node = node_load($form_state['values']['platform']);
+    
+    // Set value for pull_method property.
+    $platform_node->git['pull_method'] = $element['#value'];
+    
+    // Save platform node to form state values, to be picked up by hosting_site_update()
+    form_set_value($form['platform_node'], $platform_node, $form_state);
   }
 }
 
@@ -1375,7 +1449,7 @@ function devshop_projects_create_environment_form_validate_import($element, &$fo
   if ($form_state['values']['install_method']['method'] == 'import' && empty($element['#value'])) {
     form_set_error('install_method][import', t('If using the "Import Database" Install Method, you must enter a MySQL connection URL or absolute path to an SQL file.'));
   }
-  elseif ($url_components['scheme'] == 'mysql') {
+  elseif (isset($url_components['scheme']) && $url_components['scheme'] == 'mysql') {
     $database = array(
       'database' => ltrim($url_components['path'], '/'),
       'username' => $url_components['user'],
@@ -1507,7 +1581,7 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
     $project_cache = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['cache'] : FALSE;
     $project_revert = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['revert'] : FALSE;
     $project_dothooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['dothooks'] : FALSE;
-    $project_acquia_hooks = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['acquia_hooks'] : FALSE;
+    $project_acquia_hooks = isset($project->settings->deploy['default_hooks']['acquia_hooks']) ? $project->settings->deploy['default_hooks']['acquia_hooks'] : FALSE;
     $project_composer_install = isset($project->settings->deploy) ? $project->settings->deploy['default_hooks']['composer'] : FALSE;
   }
 
@@ -1563,7 +1637,7 @@ function devshop_environment_deploy_hooks_form($project, $environment = NULL, $t
   if (
     // Environment form
     ($is_environment_form && !$project->settings->deploy['allow_environment_deploy_config']) ||
-    ($task_type == 'devshop-deploy' && !$project->settings->deploy['allow_environment_deploy_hooks_override'])
+    ($task_type == 'git-pull' && !$project->settings->deploy['allow_environment_deploy_hooks_override'])
   ) {
 
     foreach (element_children($return) as $i) {

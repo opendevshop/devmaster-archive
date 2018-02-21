@@ -1,5 +1,6 @@
-name = DevShop Pull
-description = Provides a variety of methods to trigger a Pull Code task on DevShop projects.
+name = DevShop Project Webhooks
+description = Provides a project-wide webhook for triggering git pull tasks on environments.
 core = 7.x
 package = DevShop
 dependencies[] = devshop_projects
+dependencies[] = hosting_git_pull

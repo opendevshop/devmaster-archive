@@ -137,6 +137,7 @@ function devshop_project_load($node) {
           p.publish_path as root,
           p.publish_path as publish_path,
           g.git_ref as git_ref,
+          gp.pull_method as pull_method,
           g.repo_url as git_url,
           g.repo_path as repo_path,
           http.title as remote_host,
@@ -152,12 +153,17 @@ function devshop_project_load($node) {
           s.vid,
           sn.title as system_domain,
           a.redirection as redirect_domain,
-          e.last_task as last_task_nid
+          e.last_task as last_task_nid,
+          cp.name as platform_context,
+          cs.name as site_context
         FROM {hosting_devshop_project_environment} e
         LEFT JOIN {hosting_site} s ON e.site = s.nid
         LEFT JOIN {node} sn ON s.vid = sn.vid
         LEFT JOIN {hosting_platform} p ON s.platform = p.nid OR e.platform = p.nid
+        LEFT JOIN {hosting_context} cp ON cp.nid = p.nid
+        LEFT JOIN {hosting_context} cs ON cs.nid = s.nid
         LEFT JOIN {hosting_git} g ON p.nid = g.nid
+        LEFT JOIN {hosting_git_pull} gp ON g.nid = gp.nid
         LEFT JOIN {node} http ON p.web_server = http.nid
         LEFT JOIN {node} db ON s.db_server = db.nid
         LEFT JOIN {node} pn ON e.project_nid = pn.nid
@@ -380,6 +386,42 @@ function devshop_project_load($node) {
 //        ),
 //      )
 //    );
+
+    // Override pull method if project settings say so.
+    if (isset($project->settings) && !$project->settings->deploy['allow_environment_pull_method_config']) {
+      $environment->pull_method = $project->settings->deploy['method'];
+    }
+    
+    // Load pull method text.
+    switch($environment->pull_method) {
+      case HOSTING_GIT_PULL_CALLBACK:
+        $environment->pull_method_text = t('Auto Pull');
+        $environment->pull_method_help = t('Code is pulled to the server every time a commit notification is received from your git repository.');
+        break;
+      case HOSTING_GIT_PULL_DISABLED:
+        $environment->pull_method_text = t('Pull Disabled');
+        $environment->pull_method_help = t('You may not Pull Code to this environment.');
+        break;
+      case HOSTING_GIT_PULL_MANUAL:
+        $environment->pull_method_text = t('Manual Pull');
+        $environment->pull_method_help = t('You must manually pull code to the server, either via Terminal or: ') . l('<i class="fa fa-download"></i> ' . t('Pull Code'), "hosting_confirm/{$environment->platform}/platform_git-pull", array(
+          'attributes' => array(
+            'class' => array('btn btn-success')
+          ),
+            'html' => TRUE,
+          ));
+        break;
+      case HOSTING_GIT_PULL_QUEUE:
+        $environment->pull_method_text = t('Queued Pull');
+        $queues = hosting_get_queues();
+        $environment->pull_method_help = t('Code is pulled to this environment every @freq.', array(
+          '@freq' => format_interval($queues['pull']['frequency'], 1)
+        ));
+        if (user_access('administer hosting queues')) {
+          $environment->pull_method_help .= ' ' . l(t("Configure Queues"), 'admin/hosting/queues', array('attributes' => array('target' => '_blank')));
+        }
+        break;
+    }
 
     // Save to project environments collection.
     drupal_alter('devshop_environment', $environment, $project);

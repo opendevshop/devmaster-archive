@@ -1,6 +1,6 @@
 <div class="environment-tasks-alert alert-<?php print $task->status_class ?>" id="task-display-<?php print $task->nid; ?>">
     <div class="task-text">
-        <a href="<?php print $task->url; ?>" class="alert-link">
+        <a href="<?php print $task->url; ?>" class="alert-link task-<?php print $task->type_name ?> status-<?php print $task->status_class ?>" title="<?php print $task->type_name ?> <?php print $task->status_name ?>">
             <i class="fa fa-<?php print $task->icon ?>"></i>
             <span class="type-name"><?php print $task->type_name ?></span>
             <span class="status-name small"><?php if ($task->task_status != HOSTING_TASK_QUEUED && $task->task_status != HOSTING_TASK_PROCESSING) print $task->status_name ?></span>

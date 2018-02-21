@@ -468,9 +468,28 @@ function devshop_projects_update_7008 () {
 }
 
 /**
- * Update hosting contexts for project node to ensure they all begin with "project_".
+ * Enable Hosting Git Checkout.
  */
 function devshop_projects_update_7009 () {
+  module_enable(array(
+    'hosting_git_checkout',
+  ));
+}
+
+/**
+ * Save menu options for node types as arrays to avoid warnings in logs.
+ */
+function devshop_projects_update_7010 () {
+  variable_set('menu_options_client', []);
+  variable_set('menu_options_platform', []);
+  variable_set('menu_options_server', []);
+  variable_set('menu_options_site', []);
+}
+
+/**
+ * Update hosting contexts for project node to ensure they all begin with "project_".
+ */
+function devshop_projects_update_7011 () {
   $query = "UPDATE hosting_context c JOIN node n ON n.nid=c.nid  SET c.name = CONCAT('project_', name) WHERE n.type='project' AND c.name NOT LIKE 'project_'";
   if (!db_query($query)) {
     drupal_set_message(t('Something went wrong when running a query to update hosting_context table to ensure all projects are prefixed with "project_":') . $query);

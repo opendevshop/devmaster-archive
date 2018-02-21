@@ -36,7 +36,7 @@ Feature: Create a project
 
     And I press "Add environment"
     And I fill in "live" for "project[environments][NEW][name]"
-    And I select "master" from "project[environments][NEW][git_ref]"
+    And I select "8.0" from "project[environments][NEW][git_ref]"
     And I press "Add environment"
     Then I press "Next"
 
@@ -44,7 +44,7 @@ Feature: Create a project
     And I should see "dev"
     And I should see "live"
     And I should see "master"
-    And I should see "master"
+    And I should see "8.0"
 
     When I run drush "hosting-tasks --force --fork=0 --strict=0"
     Then print last drush output
@@ -124,3 +124,54 @@ Feature: Create a project
 
     Then I should see "DevShop Project drpl8 has been updated."
     And I should see an ".environment-link .fa-bolt" element
+
+    When I click "Visit Webhook"
+    When I should get a "403" HTTP response
+    Then I should see "is not authorized to invoke a Pull Code request"
+
+    Then I am at "admin/hosting/git"
+    And I fill in " " for "Control Access by IP"
+    Then I press "Save configuration"
+    Then print last response
+
+    Then I am on the homepage
+    And I click "drpl8"
+    When I run drush "vget" "hosting_git_pull_webhook_ip_acl"
+    Then print last drush output
+
+    When I click "Visit Webhook"
+    Then print last response
+    Then I should see "Environments found: testenv, dev, live"
+#    And I should see "Task started"
+
+    Given I move backward one page
+    When I reload the page
+
+    Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-queued" element
+    And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-queued" element
+
+    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    Then print last drush output
+
+    When I reload the page
+# Tasks on CentOS were failing with a warning. Using these steps I found the issue to be missing date timezone setting.
+#    When I click "Git pull Warning"
+#    Then print last response
+
+    Then I should see "Git pull" in the "#drpl8-testenv .last-task-alert .alert-success" element
+    And I should see "Git pull" in the "#drpl8-dev .last-task-alert .alert-success" element
+
+    # Test Checkout
+    Given I click "live" in the "main" region
+    When I click "8.3.5" in the "main" region
+    Then I should see "Git Hooks"
+    And I should see "Update: Run database updates"
+    When I press "Git checkout"
+    Then I should see "Git checkout" in the "#drpl8-live .last-task-alert .alert-queued" element
+
+    # Run twice so platform and site verify tasks run
+    When I run drush "hosting-tasks --force --fork=0 --strict=0"
+    Then print last drush output
+
+    When I reload the page
+    Then I should see "Git checkout" in the "#drpl8-live .last-task-alert .alert-success" element

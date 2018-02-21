@@ -190,9 +190,8 @@ function devshop_projects_preprocess_node(&$vars) {
     $messages = devshop_task_get_messages($vars['node']);
     $vars['messages'] = implode("\n", $messages);
     switch ($vars['task_type']) {
-      case 'devshop-deploy':
-        $vars['type'] = 'Deploy';
-        break;
+      case 'git-pull':
+      case 'git-checkout':
       case 'verify':
       case 'test':
       case 'sync':

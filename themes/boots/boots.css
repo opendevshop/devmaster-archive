@@ -1131,6 +1131,14 @@ li.text.code {
 #edit-install-method-clone-source label:hover {
   background-color: whitesmoke;
 }
+.btn-git-ref {
+    text-transform: none !important;
+}
+p.dropdown-menu {
+    padding: 1em;
+    white-space: normal;
+    font-size: .8em;
+    color: #666;
 .no-wrap {
     white-space: nowrap;
 }
