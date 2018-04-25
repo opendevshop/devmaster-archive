@@ -30,6 +30,7 @@ function devshop_pull_callback($project_hosting_context, $hash) {
   else if (!devshop_pull_ip_match(ip_address(), $allowed_ips)) {
     $message = ip_address() . " is not authorized to invoke a webhook request.";
     $status = DEVSHOP_PULL_STATUS_ACCESS_DENIED;
+    header('', 1, 403);
   }
   // All checks pass! Server is allowed to trigger tasks!
   else {

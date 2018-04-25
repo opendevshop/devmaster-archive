@@ -174,11 +174,16 @@ class FeatureContext extends DrushContext implements SnippetAcceptingContext {
         $url = $this->minkContext->getSession()->getPage()->findField('webhook-url')->getAttribute('value');
         $postdata = file_get_contents(dirname(dirname(__FILE__)) . '/assets/pull-request-opened.json');
 
-        $this->getDriver('drush')->getClient()->request ('POST', $url, $postdata);
+        $request = new \GuzzleHttp\Psr7\Request('POST', $url, [], $postdata);
+        $client = new GuzzleHttp\Client();
+        $response = $client->send($request);
 
-//        $this->minkContext->getDriver()->getClient()->request ('POST', $url, $postdata);
+        if ($response->getBody()) {
+            print $response->getBody();
+        }
 
-
-        throw new PendingException();
+        if ($response->getStatusCode() != 200) {
+            throw new \Exception('PR webhook failed.');
+        }
     }
 }

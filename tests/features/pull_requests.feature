@@ -1,15 +1,15 @@
-#@api
-#Feature: Pull Request Environments
-#  In order to review a pull request
-#  As a project admin
-#  I need to have a copy of the site running on the code from the PR
-#
-#  @api
-#  Scenario: Create a new drupal 8 project
-#
-#    Given I am logged in as a user with the "administrator" role
-#    Given I am at "project/drupal"
-#    When I submit a pull-request
+@api
+Feature: Pull Request Environments
+  In order to review a pull request
+  As a project admin
+  I need to have a copy of the site running on the code from the PR
+
+  @api
+  Scenario: Create a new drupal 8 project
+
+    Given I am logged in as a user with the "administrator" role
+    Given I am at "project/drupal"
+    When I submit a pull-request
 #
 #    And I am on the homepage
 #    When I click "Projects"
