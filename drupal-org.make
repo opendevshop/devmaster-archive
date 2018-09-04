@@ -8,6 +8,10 @@ defaults[projects][type] = "module"
 projects[devshop_stats][version] = 1.x
 projects[devshop_stats][subdir] = "contrib"
 
+; DevShop.Support Module
+projects[devshop_support][version] = 1.x
+projects[devshop_support][subdir] = "contrib"
+
 ; Aegir Modules
 ; For development, use latest branch.
 ; For release, use tagged version
