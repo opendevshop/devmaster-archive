@@ -1,0 +1,7 @@
+name = DevShop GitLab
+description = Integration with GitLab
+core = 7.x
+package = DevShop
+files[] = includes/add-key.inc
+files[] = includes/admin.inc
+dependencies[] = devshop_projects
