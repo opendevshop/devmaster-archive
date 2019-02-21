@@ -126,7 +126,8 @@ function drush_devshop_projects_pre_hosting_task()
 //  }
 
   // On every task triggered by devshop, set this option.
-  $task->options['is-devshop'] = TRUE;
+// @TODO: Create a new option for Provision 4 to allow aegir to indicate it triggered this call.
+//  $task->options['is-devshop'] = TRUE;
 }
 
 /**
