@@ -225,7 +225,7 @@ function devshop_projects_preprocess_node(&$vars) {
       }
     }
     global $user;
-    $vars['run_again'] = l(t('Run Again'), "hosting_confirm/{$node->rid}/{$node->ref_type}_{$node->task_type}", array(
+    $vars['run_again'] = l(t('Run Again'), "hosting_confirm/{$node->rid}/{$ref_node->type}_{$node->task_type}", array(
       'query' => array(
         'token' => drupal_get_token($user->uid),
         'redirect' => 'task-page',
