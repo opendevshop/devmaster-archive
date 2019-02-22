@@ -28,7 +28,7 @@ function devshop_projects_projects_page() {
     $first_environment = current($project->environments);
     if ($first_environment) {
       $platform_node = node_load($first_environment->platform);
-      $version = $platform_node->release->version;
+      $version = isset($platform_node->release)? $platform_node->release->version: '';
     }
     else {
       $version = '';
