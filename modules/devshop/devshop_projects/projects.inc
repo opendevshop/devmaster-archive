@@ -212,14 +212,14 @@ function devshop_project_load($node) {
     }
 
     // Environment Drupal version.
-    $iid = db_query("SELECT iid FROM {hosting_package_instance} i left join {hosting_package} p on p.nid=i.package_id WHERE p.package_type = :type AND i.rid = :nid", array(':type' => 'platform', ':nid' => $environment->platform))->fetchField();
-    $release = hosting_package_instance_load($iid);
+    $environment->version = t('unknown');
+    if (module_exists('hosting_package')) {
+      $iid = db_query("SELECT iid FROM {hosting_package_instance} i left join {hosting_package} p on p.nid=i.package_id WHERE p.package_type = :type AND i.rid = :nid", array(':type' => 'platform', ':nid' => $environment->platform))->fetchField();
+      $release = hosting_package_instance_load($iid);
 
-    if (isset($release->version)) {
-      $environment->version = $release->version;
-    }
-    else {
-      $environment->version = t('unknown');
+      if (isset($release->version)) {
+        $environment->version = $release->version;
+      }
     }
 
     // @TODO: Make "servers" more abstract so we can add many more.
