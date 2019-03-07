@@ -10,4 +10,4 @@ api = 2
 includes[] = drupal-org-core.make
 projects[devmaster][type] = profile
 projects[devmaster][download][type] = git
-projects[devmaster][download][branch] = 7.x-1.x
+projects[devmaster][download][branch] = 7.x-2.x
