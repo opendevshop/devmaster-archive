@@ -23,7 +23,6 @@ dependencies[] = hosting_git_tag
 dependencies[] = hosting_https
 dependencies[] = hosting_logs
 dependencies[] = hosting_migrate
-dependencies[] = hosting_package
 dependencies[] = hosting_platform
 dependencies[] = hosting_server
 dependencies[] = hosting_site

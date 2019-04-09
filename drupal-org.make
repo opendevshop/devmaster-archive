@@ -12,17 +12,17 @@ projects[devshop_stats][subdir] = "contrib"
 ; For development, use latest branch.
 ; For release, use tagged version
 projects[hosting][subdir] = aegir
-projects[hosting][version] = "3.170"
-projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-12/3020169-permission-check.patch"
-projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-05/3018114-client-optional.patch"
-projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-10/3019462-administer-servers.patch"
+projects[hosting][version] = "4.x"
+# projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-12/3020169-permission-check.patch"
+# projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-05/3018114-client-optional.patch"
+# projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-10/3019462-administer-servers.patch"
 
 ; Aegir Core not included in hosting.module
 projects[eldir][type] = theme
 projects[eldir][version] = "3.170"
 
 projects[hosting_git][subdir] = aegir
-projects[hosting_git][version] = "3.170"
+projects[hosting_git][version] = "4.x"
 
 projects[hosting_https][subdir] = aegir
 projects[hosting_https][version] = "3.171"
