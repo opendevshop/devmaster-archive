@@ -61,14 +61,9 @@ function devshop_project_create_step_sites($form, &$form_state) {
     if ($task->task_status == HOSTING_TASK_SUCCESS || $task->task_status == HOSTING_TASK_WARNING) {
 
       // It's not really ready until we get a version.
-      if (empty($platform->release->version)) {
-        $completed = FALSE;
-        $row['version'] = '...';
-        $row['profiles'] = '...';
-      }
-      else {
-        $row['version'] = $platform->release->version;
-      }
+      // Provision 4 Hosting Packages is optional until re-write.
+      $row['version'] = empty($platform->release->version)? t('Unknown'): $platform->release->version;
+      $row['profiles'] = t('Unknown');
 
       // Collect install profiles
       $profiles_shortnames = hosting_get_profiles($platform->nid, 'short_name');
@@ -214,7 +209,7 @@ HTML;
     
     // If no common profiles found, just set to standard.
     if (count($available_profiles) == 0) {
-      $available_profiles['standard'] = 'No default profile.';
+      $available_profiles['standard'] = t('Standard');
       $default_profile = 'standard';
     }
       
