@@ -4,6 +4,13 @@
 
             // Match the height of environments so the grid doesn't break.
             $('.environment-wrapper').matchHeight();
+
+            $('a.chosen-single').click(function (e) {
+                e.stopPropagation();
+            });
+            $("#edit-git-ref").chosen().change(function (e) {
+                e.stopPropagation();
+            });
         },
     }
 

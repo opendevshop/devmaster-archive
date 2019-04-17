@@ -1742,3 +1742,14 @@ function devshop_projects_hosting_site_options_alter(&$return, $node) {
   $return['profile'][] = 0;
   $return['platform'][] = 0;
 }
+
+function devshop_deploy_git_ref_form($form, $form_state, $project, $environment) {
+
+  $form['git_ref'] = array(
+    '#type' => 'select',
+    '#bootstrap_ignore_pre_render' => TRUE,
+    '#options' => devshop_projects_git_ref_options($project),
+    '#default_value' => isset($environment->git_ref) ? $environment->git_ref : 'HEAD',
+  );
+  return $form;
+}

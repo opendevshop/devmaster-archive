@@ -35,21 +35,23 @@ function boots_preprocess_environment(&$vars) {
   global $user;
   $vars['token'] = drupal_get_token($user->uid);
 
-  // Load git refs and create links
-  $vars['git_refs'] = array();
-  foreach ($project->settings->git['refs'] as $ref => $type) {
-    $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
-        'query' => array(
-            'git_ref' => $ref,
-        )
-    ));
-    $icon = $type == 'tag' ? 'tag' : 'code-fork';
+  $vars['environment_deploy_form'] = drupal_get_form('devshop_deploy_git_ref_form', $project, $environment);
 
-    $vars['git_refs'][$ref] = "<a href='$href'>
-        <i class='fa fa-$icon'></i>
-        $ref
-      </a>";
-  }
+  // Load git refs and create links
+//  $vars['git_refs'] = array();
+//  foreach ($project->settings->git['refs'] as $ref => $type) {
+//    $href = url('hosting_confirm/ENV_NID/site_devshop-deploy', array(
+//        'query' => array(
+//            'git_ref' => $ref,
+//        )
+//    ));
+//    $icon = $type == 'tag' ? 'tag' : 'code-fork';
+//
+//    $vars['git_refs'][$ref] = "<a href='$href'>
+//        <i class='fa fa-$icon'></i>
+//        $ref
+//      </a>";
+//  }
 
   // Look for all available source environments
   foreach ($vars['project']->environments as $source_environment) {

@@ -431,13 +431,9 @@
                               <?php endif; ?>
 
                               <li><label><?php print t('Deploy branch or tag'); ?></label></li>
-                                <?php if (count($git_refs)): ?>
-                                    <?php foreach ($git_refs as $ref => $item): ?>
-                                        <li>
-                                            <?php print str_replace('ENV_NID', $environment->site, $item); ?>
-                                        </li>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                              <li>
+                                <?php print render($environment_deploy_form); ?>
+                              </li>
                             </ul>
                         </div>
                     <?php endif; ?>
