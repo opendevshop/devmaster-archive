@@ -1337,16 +1337,19 @@ function devshop_projects_create_environment_form_validate_name($element, &$form
  * @param $web_server
  *   The NID of a web server to use for this platform.
  *
+ * @param $git_url
+ *   If specified, use for the platform. If not, project->git_url is used.
+ *
  * @return stdClass
  *   A populated object ready for node_submit and node_save.
  */
-function devshop_prepare_platform_node($project, $environment_name, $git_ref, $web_server) {
+function devshop_prepare_platform_node($project, $environment_name, $git_ref, $web_server, $git_url = null) {
   $platform_node = new stdClass();
   $platform_node->type = 'platform';
   $platform_node->title = $project->name . '_' . $environment_name;
   
   // Specify GIT Url for hosting_git.module
-  $platform_node->git['repo_url'] = $project->git_url;
+  $platform_node->git['repo_url'] = $git_url? $git_url: $project->git_url;
   $platform_node->git['git_ref'] = $git_ref;
   
   // Enable git pull queue for this platform if chosen.

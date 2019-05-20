@@ -17,7 +17,7 @@
  * @param $source_environment
  *   If desired, the environment to clone. (Copy the database and create a new branch from)
  */
-function hosting_create_environment($project, $new_environment_name, $new_environment_branch = NULL, $source_environment = NULL, $settings = NULL, $action = 'create') {
+function hosting_create_environment($project, $new_environment_name, $new_environment_branch = NULL, $source_environment = NULL, $git_url = NULL, $settings = NULL, $action = 'create') {
   $settings = (object) $settings;
   global $user;
 
@@ -31,7 +31,8 @@ function hosting_create_environment($project, $new_environment_name, $new_enviro
   $site->client = HOSTING_DEFAULT_CLIENT;
 
   // Attach a new platform node.
-  $site->platform_node = devshop_prepare_platform_node($project, $new_environment_name, $new_environment_branch, $settings->web_server);
+  $git_url = $git_url? $git_url: $project->git_url;
+  $site->platform_node = devshop_prepare_platform_node($project, $new_environment_name, $new_environment_branch, $settings->web_server, $git_url);
 
   // Set db server to the project default, if none was set.
   if (empty($settings->db_server) && !empty($project->settings->default_environment['db_server'])) {
