@@ -21,8 +21,10 @@ projects[hosting][patch][] = "https://www.drupal.org/files/issues/2018-12-10/301
 projects[eldir][type] = theme
 projects[eldir][version] = "3.170"
 
+projects[hosting_git][type] = module
 projects[hosting_git][subdir] = aegir
-projects[hosting_git][version] = "3.171-devshop"
+projects[hosting_git][download][type] = git
+projects[hosting_git][download][branch] = "3.171-devshop"
 
 projects[hosting_https][subdir] = aegir
 projects[hosting_https][version] = "3.171"
