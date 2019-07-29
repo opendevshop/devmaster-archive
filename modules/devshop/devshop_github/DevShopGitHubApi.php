@@ -38,7 +38,7 @@ class DevShopGitHubApi {
    *   made against the environment "git_ref", a branch or tag.
    * @param $log_url
    */
-  static function createDeployment($environment, $state = 'pending', $new = true, $description = NULL, $sha  = NULL, $log_url = NULL) {
+  static function createDeployment($environment, $state = 'pending', $new = true, $description = NULL, $sha  = NULL, $log_url = NULL, $deployment_id = null) {
 
 //    $project = $environment->project;
     $hostmaster_uri = hosting_get_hostmaster_uri();
@@ -47,7 +47,7 @@ class DevShopGitHubApi {
     try {
     $client = devshop_github_client();
 
-    if ($new || empty($environment->github_deployments)) {
+    if (empty($deployment_id) || $new || empty($environment->github_deployments) ) {
       $deployment = new stdClass();
 
       // Git Reference. Use sha if specified.
@@ -73,7 +73,6 @@ class DevShopGitHubApi {
 
       // @TODO: Use the developer preview to get this flag: https://developer.github.com/v3/previews/#enhanced-deployments
 #      $deployment->transient_environment = true;
-
       // @TODO: Support deployment notifications for production.
 #      $deployment->production_environment = false;
 
@@ -82,13 +81,24 @@ class DevShopGitHubApi {
       $deployment_object = json_decode($client->getHttpClient()->post($post_url, array(), json_encode($deployment))->getBody(TRUE));
 
       $deployment_data = self::saveDeployment($deployment_object, $environment->site);
-      watchdog('devshop_github', 'New Deployment loaded: ' . $deployment_object->id);
+      watchdog('devshop_github', 'New Deployment created: ' . $deployment_object->id);
     }
+
+    // Use existing deployment
     else {
-      reset($environment->github_deployments);
-      $devshop_environment_deployment = current($environment->github_deployments);
-      $deployment_object = $devshop_environment_deployment->deployment_object;
-      watchdog('devshop_github', 'Existing Deployment loaded: ' . $deployment_object->id);
+      //
+      if (!empty($deployment_id) && !empty($environment->github_deployments[$deployment_id])) {
+        watchdog('devshop_github', 'Deployment ID ' . $deployment_id . ' specified: ' . print_r($environment->github_deployments[$deployment_id],1));
+        $devshop_environment_deployment_record = $environment->github_deployments[$deployment_id];
+      }
+      else {
+        $devshop_environment_deployment_record =
+        current($environment->github_deployments);
+        reset($environment->github_deployments);
+      }
+
+      $deployment_object = $devshop_environment_deployment_record->deployment_object;
+      watchdog('devshop_github', 'Existing Deployment loaded: ' . print_r($deployment_object,1));
     }
 
     if (empty($deployment_object->id)) {
@@ -113,8 +123,8 @@ class DevShopGitHubApi {
     // @TODO: Use developer preview to get this:
     // https://developer.github.com/v3/previews/#deployment-statuses
     // https://developer.github.com/v3/previews/#enhanced-deployments
-    $deployment_status->environment = $deployment_data->environment;
-    $deployment_status->environment_url = $environment->url;
+    //    $deployment_status->environment = $deployment_data->environment;
+    //    $deployment_status->environment_url = $environment->url;
 
     // Create Deployment Status
     $post_url = "/repos/{$environment->github_owner}/{$environment->github_repo}/deployments/{$deployment_object->id}/statuses";
@@ -123,7 +133,12 @@ class DevShopGitHubApi {
     watchdog('devshop_github', "Deployment status saved to $state: $deployment_status_data->id");
     }
     catch (\Exception $e) {
-      watchdog('devshop_github', 'GitHub Error: ' . $e->getMessage() . ' | Post URL: ' . $post_url . ' | '. $e->getTraceAsString());
+      if (function_exists('drush_log')) {
+        drush_log('GitHub Error: ' . $e->getMessage()  . ' | '. $e->getTraceAsString(), 'warning');
+      }
+      elseif (function_exists('watchdog')) {
+        watchdog('devshop_github', 'GitHub Error: ' . $e->getMessage()  . ' | '. $e->getTraceAsString());
+      }
       return false;
     }
     catch (Github\Exception\RuntimeException $e) {
@@ -151,6 +166,7 @@ class DevShopGitHubApi {
 //      $message .= 'GitHub ValidationFailedException Error: ' . $e->getMessage();
     }
     devshop_github_save_pr_env_data( $environment->github_pull_request->pull_request_object, $environment);
+    return $deployment_object;
   }
 
   /**

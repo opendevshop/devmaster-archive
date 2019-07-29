@@ -235,8 +235,31 @@ function devshop_github_form_hosting_task_confirm_form_alter(&$form, &$form_stat
  */
 function devshop_github_form_hosting_task_confirm_form_alter_submit($form, &$form_state) {
   $values = $form_state['values'];
-  DevShopGitHubApi::createDeployment();
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter() for site_node_form().
+ *]
+ *
+ * Add the list of PRs to the Branch selector.
+ */
+function devshop_github_form_hosting_task_update_status_form_alter(&$form, &$form_state, $form_id) {
+  // @TODO:
+  $form_state['task'] = node_load($form_state["build_info"]["args"][0]);
+  if ($form_state['task']->task_type == 'devshop-deploy'){
+    $form['#submit'][] = 'devshop_github_form_hosting_task_update_status_form_alter_submit';
+  }
+}
+
+/**
+ * Submit handler for site/environment settings page.
+ */
+function devshop_github_form_hosting_task_update_status_form_alter_submit($form, &$form_state) {
+  // Tell github that the deployment was cancelled.
+  $site = node_load($form_state['task']->rid, null, true);
+  DevShopGitHubApi::createDeployment($site->environment, 'error', t('The deployment was cancelled.'));
+}
+
 
 /**
  * Implements hook_form_FORM_ID_alter() for site_node_form().
@@ -1009,10 +1032,11 @@ function devshop_github_node_insert($node) {
     devshop_github_save_pr_env_data($node->pull_request, $environment);
   }
 
-  if ($node->type == 'task' & $node->task_type == 'devshop-deploy') {
+  if ($node->type == 'task' && $node->task_type == 'devshop-deploy') {
 
     $site = node_load($node->rid, null, true);
-    DevShopGitHubApi::createDeployment($site->environment, 'pending', true);
+    $deployment = DevShopGitHubApi::createDeployment($site->environment, 'pending', true);
+    $node->task_args['github_deployment_id'] = $deployment->id;
   }
 }
 
@@ -1024,12 +1048,17 @@ function devshop_github_node_insert($node) {
 function devshop_github_node_update($node) {
 
   // Only act on test triggers.
-  if ($node->type != 'task' || $node->type == 'task' && ($node->task_type != 'test' || $node->task_type != 'devshop-deploy')) {
+  $task_types = array(
+   'test',
+   'devshop-deploy'
+  );
+  if ($node->type != 'task' || ($node->type == 'task' && !in_array($node->task_type, $task_types))) {
     return;
   }
 
   // Load the site and check for environment.
   $site = node_load($node->rid);
+  // @TODO: Ensure this works for non-github_PRs too.
   if (empty($site->environment) || empty($site->environment->github_pull_request) || empty($site->environment->settings->deploy['test'])) {
     return;
   }
@@ -1496,6 +1525,7 @@ function devshop_github_webhook($project_node) {
               $deployment = json_decode($client->getHttpClient()->post($post_url, json_encode($params))->getBody(TRUE));
 
               // Save deployment to pull request data for later access.
+              // @TODO: Save Deployments to Table.
               $data->pull_request->deployment = $deployment;
 
               $message .= " Deployment Created! \n";
