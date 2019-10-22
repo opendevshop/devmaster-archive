@@ -1797,6 +1797,7 @@ function devshop_github_create_all_pr_environments($project_node) {
     drupal_set_message(t("Unable to load Pull Requests: !message", array('!message' => $e->getMessage())));
     return;
   }
+  $prs = array();
   foreach ($prs_data as $pr) {
     $pr = convert_to_object($pr);
     $slug = "pr{$pr->number}";
