@@ -1853,7 +1853,8 @@ function devshop_github_create_all_pr_environments($project_node) {
 
     // If there IS PR data on this environment but the PR does NOT exist, queue the site for deletion.
     elseif ($environment_pr_id && empty($prs[$environment_pr_slug])) {
-      drush_log("PR environment $environment->name exists but PR has been closed. [$site_url]", "ok");
+      drush_log("PR environment $environment->name [$environment_pr_slug] exists but PR not found... [$site_url]", "ok");
+      // drush_log(print_r(array_keys($prs), 1), "ok");
       if ($project->settings->github['pull_request_environments_delete'] && empty($environment->tasks['delete'])) {
         drush_log("PR environment scheduled for deletion: $environment->name [$site_url]", "ok");
         hosting_add_task($environment->site, 'delete', array('force' => 1));
