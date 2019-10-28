@@ -39,8 +39,6 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
     // Fetch
     provision_process("git fetch origin", d()->platform->repo_path, dt('DevShop Deploy'));
 
-    provision_process("git show", d()->platform->repo_path, dt('Pre-deploy git status'));
-
     // Checkout the chosen ref
     $git_checkout_output = provision_process("git checkout {$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
     $git_checkout_output_lines = explode("\n", $git_checkout_output);
@@ -54,7 +52,6 @@ function drush_devshop_provision_provision_devshop_deploy($git_ref = '')
     // This is the better than using git pull because it can handle force pushed branches.
     if ($git_ref_type == 'branch') {
       provision_process("git reset --hard origin/{$git_ref}", d()->platform->repo_path, dt('DevShop Deploy'));
-      provision_process("git show", d()->platform->repo_path, dt('Post deploy git status'));
     }
 
     // Run a submodule update and init.
