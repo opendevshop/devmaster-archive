@@ -1,5 +1,32 @@
 {
+  "name": "devshop/devmaster",
+  "type": "drupal-profile",
+  "description": "The DevShop web interface.",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Jon Pugh",
+      "role": "Author"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.drupal.org/7"
+    }
+  ],
   "require": {
+    "php": ">=5.6.0",
+    "ext-curl": "*",
+    "ext-gd": "*",
+    "ext-json": "*",
+    "ext-openssl": "*",
+    "ext-pdo": "*",
+    "ext-xml": "*",
+    "cweagans/composer-patches": "^1.6.4",
+    "drupal-composer/drupal-scaffold": "^2.0.0",
+    "drupal/drupal": "^7.62",
+    "oomphinc/composer-installers-extender": "^1.1",
     "cpliakas/git-wrapper": "~1.0",
     "knplabs/github-api": "^2.11",
     "sensiolabs/ansi-to-html": "^1.1",
@@ -7,9 +34,15 @@
     "php-http/guzzle6-adapter": "^1.1",
     "symfony/yaml": "^3.4"
   },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "config": {
+    "sort-packages": true,
     "platform": {
       "php": "5.6.0"
     }
+  },
+  "conflict": {
+    "drupal/core": "8.*"
   }
 }
