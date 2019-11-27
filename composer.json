@@ -16,17 +16,6 @@
     }
   ],
   "require": {
-    "php": ">=5.6.0",
-    "ext-curl": "*",
-    "ext-gd": "*",
-    "ext-json": "*",
-    "ext-openssl": "*",
-    "ext-pdo": "*",
-    "ext-xml": "*",
-    "cweagans/composer-patches": "^1.6.4",
-    "drupal-composer/drupal-scaffold": "^2.0.0",
-    "drupal/drupal": "^7.62",
-    "oomphinc/composer-installers-extender": "^1.1",
     "cpliakas/git-wrapper": "~1.0",
     "knplabs/github-api": "^2.11",
     "sensiolabs/ansi-to-html": "^1.1",
