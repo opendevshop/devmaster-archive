@@ -15,3 +15,5 @@ Issues & Development
 All issues for any DevShop repository are located in the main project: [https://github.com/opendevshop/devshop/issues](https://github.com/opendevshop/devshop/issues)
 
 To contribute to development, please see the [Development](https://docs.opendevshop.com/development.html) section of the documentation.
+
+Please don't open issues or pull requests in this repository. All future work happens in the [main project](https://github.com/opendevshop/devshop).
