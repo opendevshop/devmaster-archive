@@ -1332,7 +1332,48 @@ function devshop_environment_install_method_form($project, $values = array(), $p
     ),
   );
 
+  $form['#element_validate'][] = 'devshop_projects_site_install_method_form_validate';
   return $form;
+}
+
+/**
+ * Validator for the "Install Method" form.
+ *
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function devshop_projects_site_install_method_form_validate($element, &$form_state, $form) {
+
+  $value = [];
+
+  // Ensure extra values are not present.
+  switch ($element['method']['#value']) {
+    case 'clone':
+      $value = [
+        'clone_source' => $element['clone_source']['#value'],
+        'clone_source_drush' => $element['clone_source_drush']['#value'],
+      ];
+      break;
+
+    case 'import':
+      $value = [
+        'import' => $element['import']['#value'],
+      ];
+      break;
+
+    case 'profile':
+      $value = [
+        'profile' => ($element['profile']['#value'] == '_other')?
+          $element['profile_other']['#value']:
+          $element['profile']['#value']
+        ,
+      ];
+      break;
+  }
+
+  form_set_value($element, $value, $form_state);
+
 }
 
 /**
